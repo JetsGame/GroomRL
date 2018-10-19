@@ -117,7 +117,7 @@ class GroomEnv(gym.Env):
         self.declust_index+=1
         remove_soft = (action==1)
         if remove_soft:
-            branch_torem = [min(children)] if len(children)>0 else []
+            branch_torem = [children[1]] if len(children)>1 else []
             while branch_torem:
                 i=self.declust_index
                 while i < len(declust):
@@ -129,7 +129,10 @@ class GroomEnv(gym.Env):
                 del branch_torem[0]
                 
             for i in range(self.declust_index):
-                declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
+                # loop over previous declusterings and remove momentum
+                # of soft emission if it is a parent of current node
+                if declust[i][2] in parents+[tag]:
+                    declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
 
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
@@ -187,19 +190,23 @@ class GroomEnvSD(GroomEnv):
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         self.state = self.get_state()
         declust = self.current
-        jet, parents, tag, children, j1, j2 = declust[self.declust_index]
+        node, parents, tag, children, j1, j2 = declust[self.declust_index]
         self.declust_index+=1
         pt1,rap1,phi1 = self.coords(j1)
         pt2,rap2,phi2 = self.coords(j2)
         dphi=phi1-phi2
         drap=rap1-rap2
         remove_soft = (pt2/(pt1+pt2) < 0.1 * math.pow(dphi*dphi + drap*drap,0.5))
+        #remove_soft = True
+        # print('we are studying',tag,':',node,'with parents',parents,'and children',children)
+        # print('j1:',j1,'j2:',j2)
         if remove_soft:
-            branch_torem = [min(children)] if len(children)>0 else []
+            branch_torem = [children[1]] if len(children)>1 else []
             while branch_torem:
                 i=self.declust_index
                 while i < len(declust):
                     if declust[i][2] in branch_torem:
+                        # print('deleting',declust[i][2],':',declust[i][0])
                         branch_torem+=declust[i][3]
                         del declust[i]
                     else:
@@ -207,11 +214,15 @@ class GroomEnvSD(GroomEnv):
                 del branch_torem[0]
                 
             for i in range(self.declust_index):
-                declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
-
+                # loop over previous declusterings and remove momentum
+                # of soft emission if it is a parent of current node
+                if declust[i][2] in parents+[tag]:
+                    declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
+        jet = declust[0][0]
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
+        # print('mass:',massi,' => ',mass)
         massdiff = abs(mass - self.massgoal)
         self.current = declust
         done = bool(self.declust_index >= len(declust))
