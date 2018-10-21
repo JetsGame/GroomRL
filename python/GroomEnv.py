@@ -113,7 +113,8 @@ class GroomEnv(gym.Env):
         #reward = np.exp(-massdiff*massdiff/(2*self.mass_width*self.mass_width))
         # exponential
         reward = np.exp(-massdiff/self.mass_width)
-
+        # cauchy
+        #reward = 1.0/(math.pi*(1 + (massdiff*massdiff)))
         return reward
     
     def seed(self, seed=None):

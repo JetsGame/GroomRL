@@ -10,6 +10,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
 from keras.optimizers import Adam
 
+import os
+
 # construct a DQN network to be used on lund input
 # https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
 def dqn_construct(hps, env):
@@ -43,7 +45,7 @@ def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
     # set up environment
     env = GroomEnv(fn, nev, outfn=outfn, low=np.array([0.0, -6.0]),
                    high=np.array([10.0, 8.0]), mass=80.385,
-                   target_prec = 0.01, mass_width = 2)
+                   target_prec = 0.05, mass_width = 1.0)
 
     # hyperparameters
     dqn_hps = {
@@ -57,7 +59,7 @@ def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
     dqn = dqn_construct(dqn_hps, env)
 
     print('Fitting DQN agent...')
-    dqn.fit(env, nb_steps=200000, visualize=False, verbose=2)
+    dqn.fit(env, nb_steps=500000, visualize=False, verbose=1)
 
     print('Saving weights...')
     # After training is done, we save the final weights.
@@ -68,9 +70,13 @@ def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
 if __name__ == "__main__":
     # create the DQN agent and train it.
     dqn = run_model()
+
+    fnres = 'test.pickle'
     # create an environment for the test sample
-    env = GroomEnv('../constit.json.gz', 500, outfn='test.pickle', low=np.array([0.0, -6.0]),
+    env = GroomEnv('../constit.json.gz', 500, outfn=fnres, low=np.array([0.0, -6.0]),
                    high=np.array([10.0, 8.0]), mass=80.385,
                    target_prec = 0.1, mass_width = 2)
     # test the groomer on 500 events (saved as "test.pickle")
+    if os.path.exists(fnres):
+        os.remove(fnres)
     dqn.test(env, nb_episodes=500, visualize=True)
