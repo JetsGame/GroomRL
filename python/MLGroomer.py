@@ -21,7 +21,7 @@ def dqn_construct(hps, env):
     model.add(Activation('relu'))
     model.add(Dense(100))
     model.add(Activation('relu'))
-    model.add(Dense(100))
+    model.add(Dense(50))
     model.add(Activation('relu'))
     model.add(Dense(hps['nb_actions']))
     model.add(Activation('linear'))
@@ -36,11 +36,11 @@ def dqn_construct(hps, env):
     
     return agent
 
-def run_model(fn = '../constit.json.gz', nev=500):
+def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
     """Run a test model"""
 
     # set up environment
-    env = GroomEnv(fn, nev, low=np.array([0.0, -6.0]),
+    env = GroomEnv(fn, nev, outfn=outfn, low=np.array([0.0, -6.0]),
                    high=np.array([10.0, 8.0]), mass=80.385,
                    target_prec = 0.1, mass_width = 2)
 
@@ -56,14 +56,17 @@ def run_model(fn = '../constit.json.gz', nev=500):
     dqn = dqn_construct(dqn_hps, env)
 
     print('Fitting DQN agent...')
-    dqn.fit(env, nb_steps=50000, visualize=False, verbose=2)
+    dqn.fit(env, nb_steps=300000, visualize=False, verbose=2)
 
     print('Saving weights...')
     # After training is done, we save the final weights.
     dqn.save_weights('../models/'+dqn_hps['model_name']+'.h5', overwrite=True)
 
-    return model
+    return dqn
     
 if __name__ == "__main__":
     dqn = run_model()
+    env = GroomEnv('../constit.json.gz', 500, outfn='test.pickle', low=np.array([0.0, -6.0]),
+                   high=np.array([10.0, 8.0]), mass=80.385,
+                   target_prec = 0.1, mass_width = 2)
     dqn.test(env, nb_episodes=500, visualize=True)
