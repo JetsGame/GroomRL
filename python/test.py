@@ -37,4 +37,4 @@ plt.hist(mrsd, bins=bins, alpha=0.5, label='RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$
 plt.hist(mdqn, bins=bins, alpha=0.5, label='DQN-Grooming')
 plt.xlim((0,350))
 plt.legend()
-plt.show()
+plt.savefig('test.png',bbox_inches='tight')
