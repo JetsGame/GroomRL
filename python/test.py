@@ -42,3 +42,18 @@ plt.hist(mdqnLSTM, bins=bins, alpha=0.5, label='DQN-Grooming-LSTM')
 plt.xlim((0,350))
 plt.legend()
 plt.savefig('test.png',bbox_inches='tight')
+
+# printing some stats
+def print_stats(name, data, refmass=80.385):
+    r_plain = np.array(data)-refmass
+    m = np.median(r_plain)
+    a = np.mean(r_plain)
+    s = np.std(r_plain)
+    print('%s:\tmedian-diff %.2f\tavg-diff %.2f\tstd-diff %.2f' % (name, m, a, s))
+
+print_stats('plain   ', mplain)
+print_stats('msd     ', msd)
+print_stats('mrsd    ', mrsd)
+print_stats('mdqn    ', mdqn)
+print_stats('mdqnLSTM', mdqnLSTM)
+
