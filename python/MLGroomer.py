@@ -6,7 +6,7 @@ from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam
 
 import os
