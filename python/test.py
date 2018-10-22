@@ -27,14 +27,18 @@ for ev in events:
         mrsd.append(rsdev[0][0].m())
 
 # now read the DQN masses
-with open('test.pickle','rb') as rfp:
+with open('test_Dense.pickle','rb') as rfp:
     mdqn = pickle.load(rfp)
+
+with open('test_LSTM.pickle','rb') as rfp:
+    mdqnLSTM = pickle.load(rfp)
     
 bins = np.arange(0, 401, 10)
 plt.hist(mplain, bins=bins, alpha=0.5, label='plain')
 plt.hist(msd, bins=bins, alpha=0.5, label='SD $(\\beta=0,z_\\mathrm{cut}=0.1)$')
 plt.hist(mrsd, bins=bins, alpha=0.5, label='RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$')
-plt.hist(mdqn, bins=bins, alpha=0.5, label='DQN-Grooming')
+plt.hist(mdqn, bins=bins, alpha=0.5, label='DQN-Grooming-Dense')
+plt.hist(mdqnLSTM, bins=bins, alpha=0.5, label='DQN-Grooming-LSTM')
 plt.xlim((0,350))
 plt.legend()
 plt.savefig('test.png',bbox_inches='tight')

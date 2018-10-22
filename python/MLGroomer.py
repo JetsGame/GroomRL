@@ -11,23 +11,34 @@ from keras.optimizers import Adam
 
 import os
 
+def model_construct(hps):
+    """Construct a neural network to use with the DQN agent."""
+    model = Sequential()
+    if hps['architecture']=='Dense':
+        model.add(Flatten(input_shape=(1,) + hps['input_dim']))
+        model.add(Dense(50))
+        model.add(Activation('relu'))
+        model.add(Dense(100))
+        model.add(Activation('relu'))
+        model.add(Dense(50))
+        model.add(Activation('relu'))
+        model.add(Dense(hps['nb_actions']))
+        model.add(Activation('linear'))
+    elif hps['architecture']=='LSTM':
+        model.add(LSTM(64, input_shape = (1,max(hps['input_dim']))))
+        model.add(Dropout(0.1))
+        model.add(Dense(hps['nb_actions']))
+        model.add(Activation('linear'))
+    print(model.summary())
+    return model
+    
 # construct a DQN network to be used on lund input
 # https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
-def dqn_construct(hps, env):
+def dqn_construct(hps):
     """Create a DQN agent with a simple model using dense layers."""
-    # we build a very simple model consisting of 4 dense layers
-    model = Sequential()
-    model.add(Flatten(input_shape=(1,) + hps['input_dim']))
-    model.add(Dense(50))
-    model.add(Activation('relu'))
-    model.add(Dense(100))
-    model.add(Activation('relu'))
-    model.add(Dense(50))
-    model.add(Activation('relu'))
-    model.add(Dense(hps['nb_actions']))
-    model.add(Activation('linear'))
-    print(model.summary())
-
+    # we build a very simple model consisting of 4 dense layers or LSTM
+    model = model_construct(hps)
+    
     # set up the DQN agent
     memory = SequentialMemory(limit=100000, window_length=1)
     policy = BoltzmannQPolicy()
@@ -38,7 +49,8 @@ def dqn_construct(hps, env):
     
     return agent
 
-def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
+def run_model(network='Dense', fn = '../constit-long.json.gz',
+              nev=400000, outfn=None):
     """Run a test model"""
 
     # set up environment
@@ -50,12 +62,13 @@ def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
     dqn_hps = {
         'input_dim': env.observation_space.shape,
         'nb_actions': 2,
+        'architecture': network,
         'description': 'test model',
-        'model_name': 'DQN_Test_Model'
+        'model_name': 'DQN_Test_Model_%s' % network
     }
 
     print('Constructing DQN agent...')
-    dqn = dqn_construct(dqn_hps, env)
+    dqn = dqn_construct(dqn_hps)
 
     print('Fitting DQN agent...')
     dqn.fit(env, nb_steps=500000, visualize=False, verbose=1)
@@ -67,10 +80,11 @@ def run_model(fn = '../constit-long.json.gz', nev=400000, outfn=None):
     return dqn
     
 if __name__ == "__main__":
+    network='Dense'
     # create the DQN agent and train it.
-    dqn = run_model()
+    dqn = run_model(network=network)
 
-    fnres = 'test.pickle'
+    fnres = 'test_%s.pickle' % network
     # create an environment for the test sample
     env = GroomEnv('../constit.json.gz', 500, outfn=fnres, low=np.array([0.0, -6.0]),
                    high=np.array([10.0, 8.0]), mass=80.385,
