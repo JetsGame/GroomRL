@@ -6,11 +6,6 @@ from gym.utils import seeding
 import numpy as np
 import json, warnings
 
-
-#----------------------------------------------------------------------
-def groom(model, sample_file):
-    """Use the keras model to groom jets in the sample file and return groomed jet momentum."""
-    
     
 #----------------------------------------------------------------------
 class GroomEnv(gym.Env):
