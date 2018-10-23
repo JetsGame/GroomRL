@@ -6,7 +6,7 @@ import pickle
 from matplotlib import pyplot as plt
 
 
-reader = Jets('../constit.json.gz',500)
+reader = Jets('../sample_WW_2TeV_CA.json.gz',5000)
 events_jet = reader.values()
 events = []
 for jet in events_jet:
@@ -32,14 +32,26 @@ with open('test_Dense.pickle','rb') as rfp:
 
 with open('test_LSTM.pickle','rb') as rfp:
     mdqnLSTM = pickle.load(rfp)
+
+# from GroomEnv import GroomEnvSD
+# from MLGroomer import run_model
+# env = GroomEnvSD('../sample_WW_2TeV_CA.json.gz', 10000, outfn='test_RSD.pickle',
+#                  low=np.array([0.0, -6.0]),
+#                  high=np.array([10.0, 8.0]), mass=80.385,
+#                  target_prec = 0.1, mass_width = 1.0)
+# dqn = run_model('Dense','../sample_WW_2TeV_CA.json.gz',1,80.385,1.0,1)
+# dqn.test(env, nb_episodes=5000, visualize=True)
+# with open('test_RSD.pickle','rb') as rfp:
+#     mdqnRSD = pickle.load(rfp)
     
-bins = np.arange(0, 401, 10)
+bins = np.arange(0, 401, 4)
 plt.hist(mplain, bins=bins, alpha=0.5, label='plain')
 plt.hist(msd, bins=bins, alpha=0.5, label='SD $(\\beta=0,z_\\mathrm{cut}=0.1)$')
 plt.hist(mrsd, bins=bins, alpha=0.5, label='RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$')
 plt.hist(mdqn, bins=bins, alpha=0.5, label='DQN-Grooming-Dense')
 plt.hist(mdqnLSTM, bins=bins, alpha=0.5, label='DQN-Grooming-LSTM')
-plt.xlim((0,350))
+# plt.hist(mdqnRSD, bins=bins, alpha=0.5, label='DQN-RSD $(\\beta=0,z_\\mathrm{cut}=0.1)$')
+plt.xlim((0,300))
 plt.legend()
 plt.savefig('test.png',bbox_inches='tight')
 

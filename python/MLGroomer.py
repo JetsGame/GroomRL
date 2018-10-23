@@ -84,7 +84,11 @@ if __name__ == "__main__":
     parser.add_argument('--lstm',action='store_true',dest='lstm')
     parser.add_argument('--nev',type=int, default=500000,dest='nev')
     parser.add_argument('--nstep',type=int, default=500000,dest='nstep')
-    parser.add_argument('--file',action='store',default='../constit-long.json.gz',dest='fn')
+    parser.add_argument('--file',action='store',
+                        default='../constit-long.json.gz',dest='fn')
+    parser.add_argument('--testfile',action='store',
+                        default='../sample_WW_2TeV_CA.json.gz',
+                        dest='testfn')
     parser.add_argument('--massgoal',type=float, default=80.385,dest='mass')
     parser.add_argument('--masswidth',type=float, default=1.0,dest='width')
     args = parser.parse_args()
@@ -98,10 +102,10 @@ if __name__ == "__main__":
 
     fnres = 'test_%s.pickle' % network
     # create an environment for the test sample
-    env = GroomEnv('../constit.json.gz', 500, outfn=fnres, low=np.array([0.0, -6.0]),
-                   high=np.array([10.0, 8.0]), mass=80.385,
-                   target_prec = 0.1, mass_width = 2)
-    # test the groomer on 500 events (saved as "test.pickle")
+    env = GroomEnv(args.testfn, 10000, outfn=fnres, low=np.array([0.0, -6.0]),
+                   high=np.array([10.0, 8.0]), mass=args.mass,
+                   target_prec = 0.1, mass_width = args.width)
+    # test the groomer on 5000 events (saved as "test.pickle")
     if os.path.exists(fnres):
         os.remove(fnres)
-    dqn.test(env, nb_episodes=500, visualize=True)
+    dqn.test(env, nb_episodes=5000, visualize=True)
