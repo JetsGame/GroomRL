@@ -45,9 +45,9 @@ class GroomEnv(gym.Env):
         if (self.event_index >= 0):
             # this is for test mode only: run sequentially through the
             # events to groom each one once.
-            # first: check if we are beyond range, if so print warning
-            # and loop back
             if (self.event_index >= len(self.events)):
+                # check if we are beyond range, if so print warning
+                # and loop back
                 warnings.warn('Requested too many episodes, resetting to beginning of event file')
                 self.event_index = 0
             event = self.events[self.event_index]
@@ -152,7 +152,7 @@ class GroomEnv(gym.Env):
         # if action==1, then we remove the softer branch
         if remove_soft:
             # add tag of softer child to list of things to delete
-            branch_torem = [children[1]] if len(children)>1 else []
+            branch_torem = [max(children)] if len(children)>1 else []
             while branch_torem:
                 # remove all declusterings whose ID is in our list of stuff to delete
                 i=self.declust_index
@@ -209,7 +209,6 @@ class GroomEnv(gym.Env):
             if os.path.exists(self.outfn):
                 with open(self.outfn,'rb') as rfp: 
                     masses = pickle.load(rfp)
-            
             jet = self.current[0][0]
             msq = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
             masses.append(math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq))
@@ -254,23 +253,22 @@ class GroomEnvSD(GroomEnv):
         # get subjet kinematics
         pt1,rap1,phi1 = self.coords(j1)
         pt2,rap2,phi2 = self.coords(j2)
-        dphi=phi1-phi2
+        dphi=abs(phi1-phi2)
+        if dphi>math.pi:
+            dphi = 2*math.pi - dphi
         drap=rap1-rap2
         # check if soft drop condition is satisfied
         remove_soft = (pt2/(pt1+pt2) < 0.1 * math.pow(dphi*dphi + drap*drap,0.5))
-        #remove_soft = True
-        # print('we are studying',tag,':',node,'with parents',parents,'and children',children)
-        # print('j1:',j1,'j2:',j2)
+        #print('j1: %6.2f \t j2: %6.2f  ... removing? %i'%(pt1,pt2,remove_soft))
         # if soft drop condition is not verified, remove the soft branch.
         if remove_soft:
             # add tag of softer child to list of things to delete
-            branch_torem = [children[1]] if len(children)>1 else []
+            branch_torem = [max(children)] if len(children)>1 else []
             while branch_torem:
                 # remove all declusterings whose ID is in our list of stuff to delete
                 i=self.declust_index
                 while i < len(declust):
                     if declust[i][2] in branch_torem:
-                        # print('deleting',declust[i][2],':',declust[i][0])
                         # if we delete the branch, then add its children to the
                         # list of things to remove
                         branch_torem+=declust[i][3]
