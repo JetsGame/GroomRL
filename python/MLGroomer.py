@@ -11,6 +11,7 @@ from keras.optimizers import Adam
 
 import os, argparse
 
+#---------------------------------------------------------------------- 
 def model_construct(hps):
     """Construct a neural network to use with the DQN agent."""
     model = Sequential()
@@ -32,10 +33,10 @@ def model_construct(hps):
     print(model.summary())
     return model
     
-# construct a DQN network to be used on lund input
+#---------------------------------------------------------------------- 
 # https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
 def dqn_construct(hps):
-    """Create a DQN agent with a simple model using dense layers."""
+    """Create a DQN agent to be used on lund inputs."""
     # we build a very simple model consisting of 4 dense layers or LSTM
     model = model_construct(hps)
     
@@ -49,13 +50,12 @@ def dqn_construct(hps):
     
     return agent
 
-def run_model(network, fn, nev, mass, width, nstep, outfn=None):
+#---------------------------------------------------------------------- 
+def run_model(network, fn, mass, width, nstep, nev=-1):
     """Run a test model"""
 
     # set up environment
-    env = GroomEnv(fn, nev, outfn=outfn, low=np.array([0.0, -6.0]),
-                   high=np.array([10.0, 8.0]), mass=mass,
-                   target_prec = 0.05, mass_width = width)
+    env = GroomEnv(fn, mass=mass, mass_width=width, nev=nev, target_prec=0.05)
 
     # hyperparameters
     dqn_hps = {
@@ -76,8 +76,9 @@ def run_model(network, fn, nev, mass, width, nstep, outfn=None):
     # After training is done, we save the final weights.
     dqn.save_weights('../models/'+dqn_hps['model_name']+'.h5', overwrite=True)
 
-    return dqn
+    return dqn, env
     
+#---------------------------------------------------------------------- 
 if __name__ == "__main__":
     # read command line arguments
     parser = argparse.ArgumentParser(description='Train an ML groomer.')
@@ -98,14 +99,12 @@ if __name__ == "__main__":
     else:
         network='Dense'
     # create the DQN agent and train it.
-    dqn = run_model(network, args.fn, args.nev, args.mass, args.width, args.nstep)
+    dqn, env = run_model(network, args.fn, args.mass, args.width, args.nstep, args.nev)
 
     fnres = 'test_%s.pickle' % network
-    # create an environment for the test sample
-    env = GroomEnv(args.testfn, 10000, outfn=fnres, low=np.array([0.0, -6.0]),
-                   high=np.array([10.0, 8.0]), mass=args.mass,
-                   target_prec = 0.1, mass_width = args.width)
-    # test the groomer on 5000 events (saved as "test.pickle")
+    env.testmode(fnres, args.testfn)
+    # test the groomer on 5000 events (saved as "test_network.pickle")
     if os.path.exists(fnres):
         os.remove(fnres)
-    dqn.test(env, nb_episodes=5000, visualize=True)
+    print('Done with training, now testing on sample set')
+    dqn.test(env, nb_episodes=10000, visualize=True, verbose=0)

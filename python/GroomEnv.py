@@ -4,19 +4,24 @@ from tools import *
 from gym import spaces, logger
 from gym.utils import seeding
 import numpy as np
-import json
+import json, warnings
 
 
+#----------------------------------------------------------------------
+def groom(model, sample_file):
+    """Use the keras model to groom jets in the sample file and return groomed jet momentum."""
+    
+    
+#----------------------------------------------------------------------
 class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
-    def __init__(self, fn, nev, outfn=None, low=np.array([0.0, -6.0]),
-                 high=np.array([10.0, 8.0]), mass=80.385,
-                 target_prec = 0.1, mass_width = 2):
+    #---------------------------------------------------------------------- 
+    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
+                 low=np.array([0.0, -6.0]), high=np.array([10.0, 8.0])):
         """Initialisation of the environment."""
         # read in the events
         self.fn      = fn
-        self.nev     = nev
-        self.outfn   = outfn
+        self.outfn   = None
         reader       = Jets(fn, nev, pseudojets=False)
         self.jet_def = fj.JetDefinition(fj.cambridge_algorithm, 1000.0)
         self.events  = np.array(reader.values())
@@ -26,7 +31,8 @@ class GroomEnv(gym.Env):
         self.target_prec   = target_prec
         self.mass_width    = mass_width
         self.declust_index = 0
-        self.current = self.get_random_declust()
+        self.event_index   = -1
+        self.current       = self.get_random_declust()
 
         # set up observation and action space
         self.action_space = spaces.Discrete(2)
@@ -37,10 +43,23 @@ class GroomEnv(gym.Env):
         self.viewer = None
         self.state  = None
 
+    #---------------------------------------------------------------------- 
     def get_random_declust(self):
         """Get a random declustering from the list of events"""
-        # select a random event
-        event = random.choice(self.events)
+        # select a random event (or the next one if in testmode)
+        if (self.event_index >= 0):
+            # this is for test mode only: run sequentially through the
+            # events to groom each one once.
+            # first: check if we are beyond range, if so print warning
+            # and loop back
+            if (self.event_index >= len(self.events)):
+                warnings.warn('Requested too many episodes, resetting to beginning of event file')
+                self.event_index = 0
+            event = self.events[self.event_index]
+            self.event_index = self.event_index + 1
+        else:
+            # if in training mode, take a random event in the list
+            event = random.choice(self.events)
         # append the particles to a constits list
         constits = []
         for p in event:
@@ -66,6 +85,7 @@ class GroomEnv(gym.Env):
             return res
         return []
 
+    #---------------------------------------------------------------------- 
     def get_state(self):
         """Get the state of the current declustering (i.e. Lund coordinates)"""
         jet,parents,tag,children,j1,j2 = self.current[self.declust_index]
@@ -82,6 +102,7 @@ class GroomEnv(gym.Env):
         lnDelta  = math.log(deltaR)
         return [lnkt,lnDelta]
 
+    #---------------------------------------------------------------------- 
     def coords(self,jet):
         """Get transverse momentum, rapidity and azimuth of a jet"""
         ptsq = jet[0]*jet[0] + jet[1]*jet[1]
@@ -104,6 +125,7 @@ class GroomEnv(gym.Env):
                 rap = -rap
         return math.sqrt(ptsq), rap, phi
 
+    #---------------------------------------------------------------------- 
     def reward(self,mass):
         """For a given jet mass, return the output of the reward function."""
         massdiff = abs(mass - self.massgoal)
@@ -117,11 +139,13 @@ class GroomEnv(gym.Env):
         #reward = 1.0/(math.pi*(1 + (massdiff*massdiff)))
         return reward
     
+    #---------------------------------------------------------------------- 
     def seed(self, seed=None):
         """Initialize the seed."""
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
+    #---------------------------------------------------------------------- 
     def step(self, action):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
@@ -170,6 +194,7 @@ class GroomEnv(gym.Env):
         # return the state, reward, and status
         return np.array(self.state), reward, done, {}
 
+    #---------------------------------------------------------------------- 
     def reset(self):
         """Reset internal list of declusterings to a new random jet."""
         self.current = self.get_random_declust()
@@ -177,6 +202,7 @@ class GroomEnv(gym.Env):
         self.state = self.get_state()
         return np.array(self.state)
 
+    #---------------------------------------------------------------------- 
     def render(self, mode='human'):
         """Save masses in an output files"""
         # if True:
@@ -196,22 +222,32 @@ class GroomEnv(gym.Env):
             with open(self.outfn,'wb') as wfp:
                 pickle.dump(masses, wfp)
 
-                
+    #---------------------------------------------------------------------- 
     def close(self):
         if self.viewer: self.viewer.close()
 
 
+    #---------------------------------------------------------------------- 
+    def testmode(self, outfn, fn=None, nev=-1):
+        """Switch the environment to test mode."""
+        self.outfn         = outfn
+        self.event_index   = 0
+        self.declust_index = 0
+        if fn:
+            self.fn     = fn
+            reader      = Jets(fn, nev, pseudojets=False)
+            self.events = np.array(reader.values())
 
-
-
+        
+#======================================================================
 class GroomEnvSD(GroomEnv):
     """Toy environment which should essentially recreate Recursive Soft Drop. For debugging purposes."""
-    def __init__(self, fn, nev, outfn=None, low=np.array([0.0, -6.0]),
-                 high=np.array([10.0, 8.0]), mass=80.385,
-                 target_prec = 0.1, mass_width = 2):
-        GroomEnv.__init__(self, fn, nev, outfn, low, high,
-                          mass, target_prec, mass_width)
+    #----------------------------------------------------------------------
+    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
+                 low=np.array([0.0, -6.0]), high=np.array([10.0, 8.0])):
+        GroomEnv.__init__(self, fn, mass, mass_width, nev, target_prec, low, high)
         
+    #---------------------------------------------------------------------- 
     def step(self, action):
         """Perform a grooming step, removing the soft branch if it fails the Soft Drop condition."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
