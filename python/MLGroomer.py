@@ -23,11 +23,12 @@ def model_construct(hps):
         model.add(Activation('relu'))
         model.add(Dense(50))
         model.add(Activation('relu'))
+        model.add(Dropout(0.05))
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
         model.add(LSTM(64, input_shape = (1,max(hps['input_dim']))))
-        model.add(Dropout(0.1))
+        model.add(Dropout(0.05))
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     print(model.summary())
