@@ -19,7 +19,7 @@ def model_construct(hps):
         model.add(Flatten(input_shape=(1,) + hps['input_dim']))
         model.add(Dense(50))
         model.add(Activation('relu'))
-        model.add(Dense(100))
+        model.add(Dense(150))
         model.add(Activation('relu'))
         model.add(Dense(50))
         model.add(Activation('relu'))
@@ -42,7 +42,7 @@ def dqn_construct(hps):
     model = model_construct(hps)
     
     # set up the DQN agent
-    memory = SequentialMemory(limit=100000, window_length=1)
+    memory = SequentialMemory(limit=500000, window_length=1)
     policy = BoltzmannQPolicy()
     agent = DQNAgent(model=model, nb_actions=hps['nb_actions'],
                      memory=memory, nb_steps_warmup=500,
