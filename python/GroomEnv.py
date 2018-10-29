@@ -12,7 +12,7 @@ class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
     def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
-                 low=np.array([0.0, -6.0]), high=np.array([10.0, 8.0])):
+                 low=np.array([0.0, -10.0]), high=np.array([1.0, 10.0])):
         """Initialisation of the environment."""
         # read in the events
         self.fn      = fn
@@ -92,10 +92,12 @@ class GroomEnv(gym.Env):
             dphi = 2*math.pi - dphi
         drap = rap1 - rap2;
         deltaR = math.sqrt(dphi*dphi + drap*drap);
-        # get ln kt and ln Delta
-        lnkt     = math.log(deltaR*pt2)
-        lnDelta  = math.log(deltaR)
-        return [lnkt,lnDelta]
+        # get ln kt / momentum fraction and ln Delta
+        #lnkt    = math.log(deltaR*pt2)
+        z       = pt2/(pt1+pt2)
+        lnDelta = math.log(deltaR)
+        return [z,lnDelta]
+        #return [lnkt,lnDelta]
 
     #---------------------------------------------------------------------- 
     def coords(self,jet):
@@ -238,7 +240,7 @@ class GroomEnvSD(GroomEnv):
     """Toy environment which should essentially recreate Recursive Soft Drop. For debugging purposes."""
     #----------------------------------------------------------------------
     def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
-                 low=np.array([0.0, -6.0]), high=np.array([10.0, 8.0])):
+                 low=np.array([0.0, 10.0]), high=np.array([1.0, 10.0])):
         GroomEnv.__init__(self, fn, mass, mass_width, nev, target_prec, low, high)
         
     #---------------------------------------------------------------------- 
