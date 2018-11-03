@@ -8,6 +8,7 @@ from rl.memory import SequentialMemory
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam
+from keras.callbacks import TensorBoard
 
 import os, argparse
 
@@ -52,7 +53,7 @@ def dqn_construct(hps):
     return agent
 
 #---------------------------------------------------------------------- 
-def run_model(network, fn, mass, width, nstep, nev=-1):
+def run_model(network, fn, mass, width, nstep, nev=-1, logname='log'):
     """Run a test model"""
 
     # set up environment
@@ -70,8 +71,11 @@ def run_model(network, fn, mass, width, nstep, nev=-1):
     print('Constructing DQN agent...')
     dqn = dqn_construct(dqn_hps)
 
+    print('Constructing callbacks')
+    tensorboard = TensorBoard(log_dir='logs/%s' % logname)
+
     print('Fitting DQN agent...')
-    dqn.fit(env, nb_steps=nstep, visualize=False, verbose=1)
+    dqn.fit(env, nb_steps=nstep, visualize=False, verbose=1, callbacks=[tensorboard])
 
     print('Saving weights...')
     # After training is done, we save the final weights.
@@ -93,6 +97,8 @@ if __name__ == "__main__":
                         dest='testfn')
     parser.add_argument('--massgoal',type=float, default=80.385,dest='mass')
     parser.add_argument('--masswidth',type=float, default=1.0,dest='width')
+    parser.add_argument('--logname',type=str, default='DEFAULT')
+
     args = parser.parse_args()
 
     if args.lstm:
@@ -100,7 +106,7 @@ if __name__ == "__main__":
     else:
         network='Dense'
     # create the DQN agent and train it.
-    dqn, env = run_model(network, args.fn, args.mass, args.width, args.nstep, args.nev)
+    dqn, env = run_model(network, args.fn, args.mass, args.width, args.nstep, args.nev, args.logname)
 
     fnres = 'test_%s.pickle' % network
     env.testmode(fnres, args.testfn)
