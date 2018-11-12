@@ -12,7 +12,7 @@ class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
     def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
-                 low=np.array([-10.0, -6.0]), high=np.array([0.0, 8.0])):
+                 low=np.array([-10.0, -8.0]), high=np.array([0.0, 0.0])):
         """Initialisation of the environment."""
         # read in the events
         self.fn      = fn
