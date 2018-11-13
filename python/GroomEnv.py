@@ -36,7 +36,7 @@ class GroomEnv(gym.Env):
         # set up some internal parameters
         self.seed()
         self.viewer = None
-        self.state  = None
+        self.state  = self.get_state()
 
     #---------------------------------------------------------------------- 
     def get_random_declust(self):
@@ -83,7 +83,10 @@ class GroomEnv(gym.Env):
     #---------------------------------------------------------------------- 
     def get_state(self):
         """Get the state of the current declustering (i.e. Lund coordinates)"""
-        jet,parents,tag,children,j1,j2 = self.current[self.declust_index]
+        curInd=self.declust_index
+        if (curInd < 0) or (curInd >= len(self.current)):
+            return np.array([0, 0])
+        jet,parents,tag,children,j1,j2 = self.current[curInd]
         # calculate coordinates
         pt1, rap1, phi1 = self.coords(j1)
         pt2, rap2, phi2 = self.coords(j2)
@@ -96,8 +99,9 @@ class GroomEnv(gym.Env):
         #lnkt    = math.log(deltaR*pt2)
         lnz     = math.log(pt2/(pt1+pt2))
         lnDelta = math.log(deltaR)
-        return [lnz,lnDelta]
-        #return [lnkt,lnDelta]
+        # print ([lnz,lnDelta])
+        return np.array([lnz,lnDelta])
+        #return np.array([lnkt,lnDelta])
 
     #---------------------------------------------------------------------- 
     def coords(self,jet):
@@ -134,7 +138,18 @@ class GroomEnv(gym.Env):
         reward = np.exp(-massdiff/self.mass_width)
         # cauchy
         #reward = 1.0/(math.pi*(1 + (massdiff*massdiff)))
+
+        #print(mass-self.massgoal, reward)
         return reward
+    
+    # #---------------------------------------------------------------------- 
+    # def reward_SD(self, lnz, lnkt):
+    #     """
+    #     For a given jet mass, return the output of the Soft Drop component
+    #     of the reward function.
+    #     """
+    #     reward = 
+    #     return reward
     
     #---------------------------------------------------------------------- 
     def seed(self, seed=None):
@@ -146,7 +161,6 @@ class GroomEnv(gym.Env):
     def step(self, action):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-        self.state = self.get_state()
         declust = self.current
         node, parents, tag, children, j1, j2 = declust[self.declust_index]
         self.declust_index+=1
@@ -185,11 +199,13 @@ class GroomEnv(gym.Env):
 
         # replace the internal declustering list with the current one
         self.current = declust
+        self.state = self.get_state()
         # if we are at the end of the declustering list, then we are done for this event.
         done = bool(self.declust_index >= len(declust))
 
+        #print(action," => ",reward,", ",done, "  .. ",self.state)
         # return the state, reward, and status
-        return np.array(self.state), reward, done, {}
+        return self.state, reward, done, {}
 
     #---------------------------------------------------------------------- 
     def reset(self):
@@ -197,7 +213,7 @@ class GroomEnv(gym.Env):
         self.current = self.get_random_declust()
         self.declust_index = 0
         self.state = self.get_state()
-        return np.array(self.state)
+        return self.state
 
     #---------------------------------------------------------------------- 
     def render(self, mode='human'):
