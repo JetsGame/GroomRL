@@ -11,7 +11,7 @@ import json, warnings
 class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
-    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
+    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1, reward='cauchy',
                  low=np.array([-10.0, -8.0]), high=np.array([0.0, 0.0])):
         """Initialisation of the environment."""
         # read in the events
@@ -37,6 +37,22 @@ class GroomEnv(gym.Env):
         self.seed()
         self.viewer = None
         self.state  = self.get_state()
+
+        # set the reward function
+        if reward=='cauchy':
+            self.__reward=self.__reward_Cauchy
+        elif reward=='gaussian':
+            self.__reward=self.__reward_Gaussian
+        elif reward=='exponential':
+            self.__reward=self.__reward_Exponential
+        elif reward=='inverse':
+            self.__reward=self.__reward_Inverse
+        else:
+            raise ValueError('Invalid reward: %s'%reward)
+
+        self.description= '%s with file=%s, target mass=%.3f, width=%.3f, using %s reward.'\
+            % (self.__class__.__name__,fn,mass, mass_width, reward)
+        print('Setting up %s' % self.description)
 
     #---------------------------------------------------------------------- 
     def get_random_declust(self):
@@ -126,21 +142,31 @@ class GroomEnv(gym.Env):
                 rap = -rap
         return math.sqrt(ptsq), rap, phi
 
+    #----------------------------------------------------------------------
+    def __reward_Cauchy(self, x):
+        """A cauchy reward function."""
+        return 1.0/(math.pi*(1.0 + (x*x)))
+
+    #----------------------------------------------------------------------
+    def __reward_Gaussian(self, x):
+        """A gaussian reward function."""
+        return np.exp(-x*x/2.0)
+
+    #----------------------------------------------------------------------
+    def __reward_Exponential(self, x):
+        """A negative exponential reward function."""
+        return  np.exp(-x)
+
+    #----------------------------------------------------------------------
+    def __reward_Inverse(self, x):
+        """An inverse reward function."""
+        return min(1.0, 1.0/x)
+    
     #---------------------------------------------------------------------- 
     def reward(self,mass):
         """For a given jet mass, return the output of the reward function."""
         massdiff = abs(mass - self.massgoal)
-        # inverse
-        #reward = min(1.0,1/(self.mass_width*massdiff)) 
-        # gaussian
-        #reward = np.exp(-massdiff*massdiff/(2*self.mass_width*self.mass_width))
-        # exponential
-        reward = np.exp(-massdiff/self.mass_width)
-        # cauchy
-        #reward = 1.0/(math.pi*(1 + (massdiff*massdiff)))
-
-        #print(mass-self.massgoal, reward)
-        return reward
+        return self.__reward(massdiff/self.mass_width)    
     
     # #---------------------------------------------------------------------- 
     # def reward_SD(self, lnz, lnkt):
