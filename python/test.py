@@ -5,18 +5,18 @@ import numpy as np
 import pickle
 from matplotlib import pyplot as plt
 
-# def debug_rsd():
-#     from GroomEnv import GroomEnvSD
-#     from MLGroomer import run_model
-#     import os
-#     fnres = 'test_RSD.pickle'
-#     if os.path.exists(fnres):
-#         os.remove(fnres)
-#     env = GroomEnvSD('../sample_WW_2TeV_CA.json.gz', mass=80.385,
-#                      mass_width = 1.0, nev=10000, target_prec = 0.05)
-#     dqn, _ = run_model('Dense','../sample_WW_2TeV_CA.json.gz',1,80.385,1.0,1)
-#     env.testmode(fnres)
-#     dqn.test(env, nb_episodes=10000, visualize=True)
+def debug_rsd():
+    from GroomEnv import GroomEnvSD
+    from MLGroomer import run_model
+    import os
+    fnres = 'test_RSD.pickle'
+    if os.path.exists(fnres):
+        os.remove(fnres)
+    env = GroomEnvSD('../sample_WW_2TeV_CA.json.gz', mass=80.385,
+                     mass_width = 1.0, nev=10000, target_prec = 0.05)
+    dqn, _ = run_model('Dense','../sample_WW_2TeV_CA.json.gz',1,80.385,1.0,1)
+    env.testmode(fnres)
+    dqn.test(env, nb_episodes=10000, visualize=True)
 
 reader = Jets('../sample_WW_2TeV_CA.json.gz',10000)
 events_jet = reader.values()
@@ -31,8 +31,8 @@ mrsd=[]
 msd=[]
 for ev in events:
     mplain.append(ev[0][0].m())
-    sdev=rsd_groom(ev,0.0,0.1)
-    rsdev=rsd_groom(ev,1.0,0.05,N=100000)
+    sdev=rsd_groom(ev,0.0,0.1, N=1)
+    rsdev=rsd_groom(ev,1.0,0.05)
     if sdev:
         msd.append(sdev[0][0].m())
     if rsdev:
@@ -45,7 +45,7 @@ with open('test_Dense.pickle','rb') as rfp:
 with open('test_LSTM.pickle','rb') as rfp:
     mdqnLSTM = pickle.load(rfp)
 
-## debug_rsd()
+# # debug_rsd()
 # with open('test_RSD.pickle','rb') as rfp:
 #         mdqnRSD = pickle.load(rfp)
 
@@ -59,7 +59,7 @@ plt.hist(mdqn,     bins=bins, facecolor='none', edgecolor='C3', lw=2,
          label='DQN-Grooming-Dense', hatch="\\")
 plt.hist(mdqnLSTM, bins=bins, facecolor='none', edgecolor='C4', lw=2,
          label='DQN-Grooming-LSTM', hatch="/")
-#plt.hist(mdqnRSD, bins=bins, color='C5',alpha=0.5, label='DQN-RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$')
+# plt.hist(mdqnRSD, bins=bins, color='C5',alpha=0.5, label='DQN-RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$')
 plt.xlim((0,150))
 plt.legend()
 plt.savefig('test.png',bbox_inches='tight')
