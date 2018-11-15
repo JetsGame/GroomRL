@@ -83,14 +83,14 @@ class GroomEnv(gym.Env):
             fill_pq(declusts, jets[0])
             ldecl = pq_to_list(declusts)
             res = []
-            for jet,parents,tag,children in ldecl:
+            for jet,children,tag,parents in ldecl:
                 j1 = fj.PseudoJet()
                 j2 = fj.PseudoJet()
                 jet.has_parents(j1,j2)
                 if (j2.pt() > j1.pt()):
                     j1,j2=j2,j1
                 res.append([[jet.px(),jet.py(),jet.pz(),jet.E()],
-                            parents, tag, children,                
+                            children, tag, parents,
                             [j1.px(),j1.py(),j1.pz(),j1.E()],
                             [j2.px(),j2.py(),j2.pz(),j2.E()]])
             return res
@@ -102,7 +102,7 @@ class GroomEnv(gym.Env):
         curInd=self.declust_index
         if (curInd < 0) or (curInd >= len(self.current)):
             return np.array([0, 0])
-        jet,parents,tag,children,j1,j2 = self.current[curInd]
+        jet,children,tag,parents,j1,j2 = self.current[curInd]
         # calculate coordinates
         pt1, rap1, phi1 = self.coords(j1)
         pt2, rap2, phi2 = self.coords(j2)
@@ -188,35 +188,45 @@ class GroomEnv(gym.Env):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         declust = self.current
-        node, parents, tag, children, j1, j2 = declust[self.declust_index]
+        node, children, tag, parents, j1, j2 = declust[self.declust_index]
         self.declust_index+=1
         remove_soft = (action==1)
         # if action==1, then we remove the softer branch
         if remove_soft:
             # add tag of softer child to list of things to delete
-            branch_torem = [max(children)] if len(children)>1 else []
+            branch_torem = [parents[1]] if parents[1]>0 else []
             while branch_torem:
                 # remove all declusterings whose ID is in our list of stuff to delete
                 i=self.declust_index
                 while i < len(declust):
                     if declust[i][2] in branch_torem:
-                        # if we delete the branch, then add its children to the
-                        # list of things to remove
-                        branch_torem+=declust[i][3]
+                        # if we delete the branch, then add its parents (i.e. declust[i][3])
+                        # to the list of things to remove (and make sure to only add valid IDs>0)
+                        branch_torem+=[j for j in declust[i][3] if j>0]
                         del declust[i]
                     else:
                         i+=1
                 del branch_torem[0]
                 
             for i in range(self.declust_index):
-                # loop over previous declusterings and remove momentum
+                # loop over previous declusterings (children) and remove momentum
                 # of soft emission if it is a parent of current node
-                if declust[i][2] in parents+[tag]:
+                if declust[i][2] in children+[tag]:
                     declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
+                    # then remove it also along the j1 or j2 components of the node
+                    # with which it is associated
+                    # if j1 tag from node i (declust[i][3][0]) is in the list of children, groom it
+                    if declust[i][3][0] in children+[tag]:
+                        # remove soft emission from j1 of node i (declust[i][4])
+                        declust[i][4] = [a - b for a, b in zip(declust[i][4], j2)]
+                    # if j2 tag from node i (declust[i][3][1]) is in the list of children, groom it
+                    if declust[i][3][1] in children+[tag]:
+                        # remove soft emission from j2 of node i (declust[i][5])
+                        declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
 
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
-        jet = declust[0][0]
+        jet  = declust[0][0]
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
         
@@ -281,9 +291,12 @@ class GroomEnv(gym.Env):
 class GroomEnvSD(GroomEnv):
     """Toy environment which should essentially recreate Recursive Soft Drop. For debugging purposes."""
     #----------------------------------------------------------------------
-    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1,
+    def __init__(self, fn, zcut=0.05, beta=1, mass=80.385, mass_width=1.0,
+                 nev=-1, target_prec=0.1, reward='cauchy',
                  low=np.array([0.0, 10.0]), high=np.array([1.0, 10.0])):
-        GroomEnv.__init__(self, fn, mass, mass_width, nev, target_prec, low, high)
+        self.zcut = zcut
+        self.beta = beta
+        GroomEnv.__init__(self, fn, mass, mass_width, nev, target_prec, reward, low, high)
         
     #---------------------------------------------------------------------- 
     def step(self, action):
@@ -292,7 +305,7 @@ class GroomEnvSD(GroomEnv):
         # get the current state, and move the intenral index forward
         self.state = self.get_state()
         declust = self.current
-        node, parents, tag, children, j1, j2 = declust[self.declust_index]
+        node, children, tag, parents, j1, j2 = declust[self.declust_index]
         self.declust_index+=1
         # get subjet kinematics
         pt1,rap1,phi1 = self.coords(j1)
@@ -302,30 +315,40 @@ class GroomEnvSD(GroomEnv):
             dphi = 2*math.pi - dphi
         drap=rap1-rap2
         # check if soft drop condition is satisfied
-        remove_soft = (pt2/(pt1+pt2) < 0.1 * math.pow(dphi*dphi + drap*drap,0.5))
+        remove_soft = (pt2/(pt1+pt2) < self.zcut * math.pow(dphi*dphi + drap*drap, self.beta/2))
         #print('j1: %6.2f \t j2: %6.2f  ... removing? %i'%(pt1,pt2,remove_soft))
         # if soft drop condition is not verified, remove the soft branch.
         if remove_soft:
             # add tag of softer child to list of things to delete
-            branch_torem = [max(children)] if len(children)>1 else []
+            branch_torem = [parents[1]] if parents[1]>0 else []
             while branch_torem:
                 # remove all declusterings whose ID is in our list of stuff to delete
                 i=self.declust_index
                 while i < len(declust):
                     if declust[i][2] in branch_torem:
-                        # if we delete the branch, then add its children to the
-                        # list of things to remove
-                        branch_torem+=declust[i][3]
+                        # if we delete the branch, then add its parents (i.e. declust[i][3])
+                        # to the list of things to remove (and make sure to only add valid IDs>0)
+                        branch_torem+=[j for j in declust[i][3] if j>0]
                         del declust[i]
                     else:
                         i+=1
                 del branch_torem[0]
                 
             for i in range(self.declust_index):
-                # loop over previous declusterings and remove momentum
+                # loop over previous declusterings (children) and remove momentum
                 # of soft emission if it is a parent of current node
-                if declust[i][2] in parents+[tag]:
+                if declust[i][2] in children+[tag]:
                     declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
+                    # then remove it also along the j1 or j2 components of the node
+                    # with which it is associated
+                    # if j1 tag from node i (declust[i][3][0]) is in the list of children, groom it
+                    if declust[i][3][0] in children+[tag]:
+                        # remove soft emission from j1 of node i (declust[i][4])
+                        declust[i][4] = [a - b for a, b in zip(declust[i][4], j2)]
+                    # if j2 tag from node i (declust[i][3][1]) is in the list of children, groom it
+                    if declust[i][3][1] in children+[tag]:
+                        # remove soft emission from j2 of node i (declust[i][5])
+                        declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
 
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
