@@ -230,8 +230,9 @@ class GroomEnv(gym.Env):
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
         
-        # calculate a reward
-        reward = self.reward(mass)
+        # calculate a reward, normalised to total number of declusterings
+        reward = self.reward(mass)/len(declust)
+
 
         # replace the internal declustering list with the current one
         self.current = declust
