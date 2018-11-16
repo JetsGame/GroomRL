@@ -1,5 +1,6 @@
 from grooming import *
 from tools import *
+from observables import *
 from create_image import Jets
 import numpy as np
 import pickle
@@ -45,9 +46,10 @@ with open('test_Dense.pickle','rb') as rfp:
 with open('test_LSTM.pickle','rb') as rfp:
     mdqnLSTM = pickle.load(rfp)
 
-# # debug_rsd()
+# debug_rsd()
 # with open('test_RSD.pickle','rb') as rfp:
-#         mdqnRSD = pickle.load(rfp)
+#     constits_dqnRSD = pickle.load(rfp)
+# mdqnRSD = mass(constits_dqnRSD)
 
 bins = np.arange(0, 401, 2)
 plt.rcParams.update({'font.size': 20})
@@ -57,8 +59,8 @@ plt.hist(mrsd, bins=bins, alpha=0.4, color='C2', label='RSD $(\\beta=1,z_\\mathr
 plt.hist(msd,  bins=bins, alpha=0.4, color='C1', label='SD $(\\beta=0,z_\\mathrm{cut}=0.1)$')
 plt.hist(mdqn,     bins=bins, facecolor='none', edgecolor='C3', lw=2,
          label='DQN-Grooming-Dense', hatch="\\")
-plt.hist(mdqnLSTM, bins=bins, facecolor='none', edgecolor='C4', lw=2,
-         label='DQN-Grooming-LSTM', hatch="/")
+# plt.hist(mdqnLSTM, bins=bins, facecolor='none', edgecolor='C4', lw=2,
+#          label='DQN-Grooming-LSTM', hatch="/")
 # plt.hist(mdqnRSD, bins=bins, color='C5',alpha=0.5, label='DQN-RSD $(\\beta=1,z_\\mathrm{cut}=0.1)$')
 plt.xlim((0,150))
 plt.legend()

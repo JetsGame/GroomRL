@@ -1,6 +1,7 @@
 import heapq as hq
 import fastjet as fj
 
+#----------------------------------------------------------------------
 def pq_to_list(pq):
     """Take an input priority queue (heapq) and return the ordered list, without the delta R value"""
     l=[]
@@ -10,7 +11,8 @@ def pq_to_list(pq):
         l.append(hq.heappop(pq)[1:])
 
     return l
-    
+
+#----------------------------------------------------------------------
 def fill_pq(pq, j, children=[], idty=0):
     """Fill the priority queue with all declustered pseudojets."""
     # create two empty pseudojets which will hold the parents

@@ -1,5 +1,6 @@
 import fastjet as fj
 
+#----------------------------------------------------------------------
 def rsd_groom(declusts, beta, zcut, N=-1, R0=1.0):
     """Apply Recursive Soft Drop grooming to a declustering list"""
     groomed_branches = []

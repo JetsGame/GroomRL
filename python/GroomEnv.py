@@ -254,21 +254,26 @@ class GroomEnv(gym.Env):
     #---------------------------------------------------------------------- 
     def render(self, mode='human'):
         """Save masses in an output files"""
-        # if True:
-        #     jet = self.current[0][0]
-        #     msq = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
-        #     print(math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq))
+        # reached end of grooming and there is an output file
         if (self.declust_index >= len(self.current) and self.outfn):
-            masses = []
+            constituents = []
             if os.path.exists(self.outfn):
                 with open(self.outfn,'rb') as rfp: 
-                    masses = pickle.load(rfp)
-            jet = self.current[0][0]
-            msq = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
-            masses.append(math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq))
+                    constituents = pickle.load(rfp)
 
+            # # doesn't work
+            # jet = []
+            # for j, children, tag, parents, j1, j2 in self.current:
+            #     if parents[0] < 0:
+            #         jet.append(j1)
+            #     if parents[1] < 0:
+            #         jet.append(j2)
+            # constituents.append(jet)
+            
+            constituents.append(self.current[0][0])
+            
             with open(self.outfn,'wb') as wfp:
-                pickle.dump(masses, wfp)
+                pickle.dump(constituents, wfp)
 
     #---------------------------------------------------------------------- 
     def close(self):
@@ -316,7 +321,6 @@ class GroomEnvSD(GroomEnv):
         drap=rap1-rap2
         # check if soft drop condition is satisfied
         remove_soft = (pt2/(pt1+pt2) < self.zcut * math.pow(dphi*dphi + drap*drap, self.beta/2))
-        #print('j1: %6.2f \t j2: %6.2f  ... removing? %i'%(pt1,pt2,remove_soft))
         # if soft drop condition is not verified, remove the soft branch.
         if remove_soft:
             # add tag of softer child to list of things to delete
@@ -349,15 +353,15 @@ class GroomEnvSD(GroomEnv):
                     if declust[i][3][1] in children+[tag]:
                         # remove soft emission from j2 of node i (declust[i][5])
                         declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
-
+            
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
         jet = declust[0][0]
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
 
-        # calculate a reward
-        reward = self.reward(mass)
+        # calculate a reward, normalised to total number of declusterings
+        reward = self.reward(mass)/len(declust)
 
         # replace the internal declustering list with the current one
         self.current = declust
