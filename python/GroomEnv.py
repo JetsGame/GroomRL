@@ -50,12 +50,19 @@ class GroomEnv(gym.Env):
         else:
             raise ValueError('Invalid reward: %s'%reward)
         # set variables needed for the SD reward
-        self.alpha1 = 1.0
-        self.alpha2 = 0.1
+        self.alpha1 = 0.5
+        self.alpha2 = 0.4
+        # for alternative implementation
+        # self.alpha1 = 1.0
+        # self.alpha2 = 0.1
         self.SDnorm = 0.1
         # lnzRef is the reference value below which radiation is
         # considered soft and to be groomed
-        self.lnzRef = -8
+        self.lnzRef1 = -4
+        self.lnzRef2 = -6
+        # for alternative implementation
+        #self.lnzRef1 = -8
+        #self.lnzRef2 = -8
         
         self.description= '%s with file=%s, target mass=%.3f, width=%.3f, using %s reward.'\
             % (self.__class__.__name__,fn,mass, mass_width, reward)
@@ -182,9 +189,13 @@ class GroomEnv(gym.Env):
         of the reward function.
         """
         if is_groomed:
-            reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef - lnz)))
+            reward = min(1.0, math.exp(-self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
+            # alternative implementation
+            #reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef1 - lnz)))
         else:
-            reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef - lnz)))
+            reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
+            # alternative implementation
+            #reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
         return self.SDnorm*reward
     
     #---------------------------------------------------------------------- 

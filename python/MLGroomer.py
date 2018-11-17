@@ -98,6 +98,7 @@ if __name__ == "__main__":
     parser.add_argument('--massgoal',type=float, default=80.385,dest='mass')
     parser.add_argument('--masswidth',type=float, default=1.0,dest='width')
     parser.add_argument('--logname',type=str, default='DEFAULT')
+    parser.add_argument('--testname',type=str, default=None)
 
     args = parser.parse_args()
 
@@ -108,7 +109,11 @@ if __name__ == "__main__":
     # create the DQN agent and train it.
     dqn, env = run_model(network, args.fn, args.mass, args.width, args.nstep, args.nev, args.logname)
 
-    fnres = 'test_%s.pickle' % network
+    if args.testname:
+        fnres = args.testname
+    else:
+        fnres = 'test_%s.pickle' % network
+        
     env.testmode(fnres, args.testfn)
     # test the groomer on 5000 events (saved as "test_network.pickle")
     if os.path.exists(fnres):
