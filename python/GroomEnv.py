@@ -49,7 +49,14 @@ class GroomEnv(gym.Env):
             self.__reward=self.__reward_Inverse
         else:
             raise ValueError('Invalid reward: %s'%reward)
-
+        # set variables needed for the SD reward
+        self.alpha1 = 1.0
+        self.alpha2 = 0.1
+        self.SDnorm = 0.1
+        # lnzRef is the reference value below which radiation is
+        # considered soft and to be groomed
+        self.lnzRef = -8
+        
         self.description= '%s with file=%s, target mass=%.3f, width=%.3f, using %s reward.'\
             % (self.__class__.__name__,fn,mass, mass_width, reward)
         print('Setting up %s' % self.description)
@@ -160,23 +167,30 @@ class GroomEnv(gym.Env):
     #----------------------------------------------------------------------
     def __reward_Inverse(self, x):
         """An inverse reward function."""
-        return min(1.0, 1.0/x)
+        return min(1.0, 1.0/(x + 0.5))
     
     #---------------------------------------------------------------------- 
-    def reward(self,mass):
+    def reward_mass(self,mass):
         """For a given jet mass, return the output of the reward function."""
         massdiff = abs(mass - self.massgoal)
         return self.__reward(massdiff/self.mass_width)    
     
-    # #---------------------------------------------------------------------- 
-    # def reward_SD(self, lnz, lnkt):
-    #     """
-    #     For a given jet mass, return the output of the Soft Drop component
-    #     of the reward function.
-    #     """
-    #     reward = 
-    #     return reward
+    #---------------------------------------------------------------------- 
+    def reward_SD(self, lnz, lnDelta, is_groomed):
+        """
+        For a given jet mass, return the output of the Soft Drop component
+        of the reward function.
+        """
+        if is_groomed:
+            reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef - lnz)))
+        else:
+            reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef - lnz)))
+        return self.SDnorm*reward
     
+    #---------------------------------------------------------------------- 
+    def reward(self, mass, lnz, lnDelta, is_groomed):
+        """Full reward function."""
+        return self.reward_mass(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
     #---------------------------------------------------------------------- 
     def seed(self, seed=None):
         """Initialize the seed."""
@@ -189,6 +203,7 @@ class GroomEnv(gym.Env):
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         declust = self.current
         node, children, tag, parents, j1, j2 = declust[self.declust_index]
+        lnz, lnDelta = self.get_state()
         self.declust_index+=1
         remove_soft = (action==1)
         # if action==1, then we remove the softer branch
@@ -230,8 +245,8 @@ class GroomEnv(gym.Env):
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
         
-        # calculate a reward, normalised to total number of declusterings
-        reward = self.reward(mass)
+        # calculate a reward
+        reward = self.reward(mass, lnz, lnDelta, action==1)
 
 
         # replace the internal declustering list with the current one
@@ -361,13 +376,10 @@ class GroomEnvSD(GroomEnv):
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
 
-        # calculate a reward, normalised to total number of declusterings
-        reward = self.reward(mass)
-
         # replace the internal declustering list with the current one
         self.current = declust
         # if we are at the end of the declustering list, then we are done for this event.
         done = bool(self.declust_index >= len(declust))
                 
         # return the state, reward, and status
-        return np.array(self.state), reward, done, {}
+        return self.state, 0.0, done, {}
