@@ -84,18 +84,18 @@ For the groomed subjet component, we can use a function of the form
 \begin{equation}
   \label{eq:groom-rew}
   f_{\text{SD-groom}}(\Delta, z) =
-  \min(\exp(\alpha_ 1 \ln(1/\Delta) (-8-\ln z)),1)\,,
+  \min[\exp(-\alpha_1 \ln(1/\Delta) + \alpha_1(-8-\ln z)),1]\,,
 \end{equation}
-which is shown for $\alpha_1=1$ in figure~\ref{fig:SD-reward-shape}
+which is shown for $\alpha_1=1/2$ in figure~\ref{fig:SD-reward-shape}
 (left).
 
 For the ungroomed subjets, the function we use is
 \begin{equation}
   \label{eq:keep-rew}
   f_{\text{SD-keep}}(\Delta, z) =
-  \max(1 - \exp(\alpha_2 \ln(1/\Delta)(-8-\ln z)),0)\,,
+  \max(1 - \exp(-\alpha_2 \ln(1/\Delta) + \alpha_2(-8-\ln z)),0)\,,
 \end{equation}
-which is shown for $\alpha_2=1/10$ in the right-hand side of
+which is shown for $\alpha_2=4/10$ in the right-hand side of
 figure~\ref{fig:SD-reward-shape}.
 
 \begin{figure}
@@ -117,6 +117,34 @@ Here $\Theta_\text{groomed}$ is one for groomed subjets and zero
 otherwise, $\Theta_\text{ungroomed} = 1 - \Theta_\text{groomed}$, and
 $N$ is a normalisation factor suppressing the SD component of the
 reward with respect to the mass component.
+
+\subsection{Alternative function}
+Alternatively we can try another functional form, with
+\begin{equation}
+  \label{eq:groom-rew}
+  f_{\text{SD-groom}}(\Delta, z) =
+  \min(\exp(\alpha_ 1 \ln(1/\Delta) (-8-\ln z)),1)\,,
+\end{equation}
+which is shown for $\alpha_1=1$ in figure~\ref{fig:SD-reward-shape-alt}
+(left).
+
+For the ungroomed subjets, the function we use is
+\begin{equation}
+  \label{eq:keep-rew}
+  f_{\text{SD-keep}}(\Delta, z) =
+  \max(1 - \exp(\alpha_2 \ln(1/\Delta)(-8-\ln z)),0)\,,
+\end{equation}
+which is shown for $\alpha_2=1/10$ in the right-hand side of
+figure~\ref{fig:SD-reward-shape-alt}.
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.5\textwidth,page=3]{SD-reward-test}%
+  \includegraphics[width=0.5\textwidth,page=4]{SD-reward-test}%  
+  \caption{Alternative shape of the reward function for groomed (left)
+    and ungroomed (right) subjets.}
+  \label{fig:SD-reward-shape-alt}
+\end{figure}
 
 \subsection{Total reward}
 
