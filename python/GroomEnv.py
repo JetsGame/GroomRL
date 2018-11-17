@@ -55,7 +55,7 @@ class GroomEnv(gym.Env):
         # for alternative implementation
         # self.alpha1 = 1.0
         # self.alpha2 = 0.1
-        self.SDnorm = 0.1
+        self.SDnorm = 0.05
         # lnzRef is the reference value below which radiation is
         # considered soft and to be groomed
         self.lnzRef1 = -4
@@ -189,11 +189,11 @@ class GroomEnv(gym.Env):
         of the reward function.
         """
         if is_groomed:
-            reward = min(1.0, math.exp(-self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
+            reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
             # alternative implementation
             #reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef1 - lnz)))
         else:
-            reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
+            reward = max(0.0, 1.0 - math.exp(self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
             # alternative implementation
             #reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
         return self.SDnorm*reward
