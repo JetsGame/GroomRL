@@ -41,7 +41,8 @@ for ev in events:
 
 # now read the DQN masses
 with open('test_Dense.pickle','rb') as rfp:
-    mdqn = pickle.load(rfp)
+    constits_dqn = pickle.load(rfp)
+mdqn=mass(constits_dqn)
 
 with open('test_LSTM.pickle','rb') as rfp:
     mdqnLSTM = pickle.load(rfp)

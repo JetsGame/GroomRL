@@ -66,9 +66,10 @@ groomed (ungroomed) subjets are.
 The mass reward is simply given by
 \begin{equation}
   \label{eq:mass-reward}
-  R_M(m) = f_R(m - m_\text{target})\,,
+  R_M(m) = f_R\Big(\frac{|m - m_\text{target}|}{\Gamma}\Big)\,,
 \end{equation}
-where $m$ is the current mass of the jet.
+where $m$ is the current mass of the jet, $m_\text{target}$ is the
+target reference (e.g. $m_W$), and $\Gamma$ is a width parameter.
 
 \subsection{Soft-Drop reward}
 The second component to the reward is essentially based on the SD
