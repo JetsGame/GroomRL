@@ -1,4 +1,6 @@
 from GroomEnv import GroomEnv
+from Groomer import Groomer
+from create_image import Jets
 import numpy as np
 
 from rl.agents.dqn import DQNAgent
@@ -10,7 +12,7 @@ from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 
-import os, argparse
+import os, argparse, pickle
 
 #---------------------------------------------------------------------- 
 def model_construct(hps):
@@ -113,10 +115,21 @@ if __name__ == "__main__":
         fnres = args.testname
     else:
         fnres = 'test_%s.pickle' % network
-        
-    env.testmode(fnres, args.testfn)
-    # test the groomer on 5000 events (saved as "test_network.pickle")
+
+    print('Done with training, now testing on sample set')
     if os.path.exists(fnres):
         os.remove(fnres)
-    print('Done with training, now testing on sample set')
-    dqn.test(env, nb_episodes=10000, visualize=True, verbose=0)
+        
+    # now use model trained by DQN to groom test sample
+    groomer = Groomer(dqn.model, dqn.test_policy)
+    reader = Jets(args.testfn, 10000)
+    events = reader.values()
+    groomed_jets = []
+    for jet in events:
+        groomed_jets.append(groomer(jet))
+    with open(fnres,'wb') as wfp:
+        pickle.dump(groomed_jets, wfp)
+
+    # env.testmode(fnres, args.testfn)
+    # # test the groomer on 5000 events (saved as "test_network.pickle")
+    # dqn.test(env, nb_episodes=10000, visualize=True, verbose=0)

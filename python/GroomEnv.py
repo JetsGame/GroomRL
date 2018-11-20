@@ -1,8 +1,9 @@
 import random, math, gym, copy, os, pickle
 from create_image import Jets
-from tools import *
+from tools import declusterings, kinematics_node, coords
 from gym import spaces, logger
 from gym.utils import seeding
+import fastjet as fj
 import numpy as np
 import json, warnings
 
@@ -17,9 +18,8 @@ class GroomEnv(gym.Env):
         # read in the events
         self.fn      = fn
         self.outfn   = None
-        reader       = Jets(fn, nev, pseudojets=False)
-        self.jet_def = fj.JetDefinition(fj.cambridge_algorithm, 1000.0)
-        self.events  = np.array(reader.values())
+        reader       = Jets(fn, nev)
+        self.events  = reader.values()
 
         # set up the mass parameters and initial state
         self.massgoal      = mass
@@ -85,30 +85,7 @@ class GroomEnv(gym.Env):
         else:
             # if in training mode, take a random event in the list
             event = random.choice(self.events)
-        # append the particles to a constits list
-        constits = []
-        for p in event:
-            constits.append(fj.PseudoJet(p[0],p[1],p[2],p[3]))
-        # run jet clustering
-        jets = self.jet_def(constits)
-        # create a list of ordered declusterings
-        declusts = []
-        if len(jets)>0:
-            fill_pq(declusts, jets[0])
-            ldecl = pq_to_list(declusts)
-            res = []
-            for jet,children,tag,parents in ldecl:
-                j1 = fj.PseudoJet()
-                j2 = fj.PseudoJet()
-                jet.has_parents(j1,j2)
-                if (j2.pt() > j1.pt()):
-                    j1,j2=j2,j1
-                res.append([[jet.px(),jet.py(),jet.pz(),jet.E()],
-                            children, tag, parents,
-                            [j1.px(),j1.py(),j1.pz(),j1.E()],
-                            [j2.px(),j2.py(),j2.pz(),j2.E()]])
-            return res
-        return []
+        return declusterings(event)
 
     #---------------------------------------------------------------------- 
     def get_state(self):
@@ -116,45 +93,7 @@ class GroomEnv(gym.Env):
         curInd=self.declust_index
         if (curInd < 0) or (curInd >= len(self.current)):
             return np.array([0, 0])
-        jet,children,tag,parents,j1,j2 = self.current[curInd]
-        # calculate coordinates
-        pt1, rap1, phi1 = self.coords(j1)
-        pt2, rap2, phi2 = self.coords(j2)
-        dphi = abs(phi1 - phi2);
-        if dphi > math.pi:
-            dphi = 2*math.pi - dphi
-        drap = rap1 - rap2;
-        deltaR = math.sqrt(dphi*dphi + drap*drap);
-        # get ln kt / momentum fraction and ln Delta
-        #lnkt    = math.log(deltaR*pt2)
-        lnz     = math.log(pt2/(pt1+pt2))
-        lnDelta = math.log(deltaR)
-        # print ([lnz,lnDelta])
-        return np.array([lnz,lnDelta])
-        #return np.array([lnkt,lnDelta])
-
-    #---------------------------------------------------------------------- 
-    def coords(self,jet):
-        """Get transverse momentum, rapidity and azimuth of a jet"""
-        ptsq = jet[0]*jet[0] + jet[1]*jet[1]
-        phi   = math.atan2(jet[1],jet[0]);
-        if phi < 0.0:
-            phi += 2*math.pi
-        if phi >= 2*math.pi:
-            phi -= 2*math.pi
-        if (jet[3] == abs(jet[2]) and ptsq == 0):
-            MaxRapHere = 1e5 + abs(jet[2]);
-            if jet[2] >= 0.0:
-                rap = MaxRapHere
-            else:
-                rap = -MaxRapHere
-        else:
-            effective_m2 = max(0.0,jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2])
-            E_plus_pz    = jet[3] + abs(jet[2])
-            rap = 0.5*math.log((ptsq + effective_m2)/(E_plus_pz*E_plus_pz))
-            if jet[2] > 0:
-                rap = -rap
-        return math.sqrt(ptsq), rap, phi
+        return kinematics_node(self.current[curInd])
 
     #----------------------------------------------------------------------
     def __reward_Cauchy(self, x):
@@ -249,7 +188,6 @@ class GroomEnv(gym.Env):
                     if declust[i][3][1] in children+[tag]:
                         # remove soft emission from j2 of node i (declust[i][5])
                         declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
-
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
         jet  = declust[0][0]
@@ -298,7 +236,6 @@ class GroomEnv(gym.Env):
             # constituents.append(jet)
             
             constituents.append(self.current[0][0])
-            
             with open(self.outfn,'wb') as wfp:
                 pickle.dump(constituents, wfp)
 
@@ -315,8 +252,8 @@ class GroomEnv(gym.Env):
         self.declust_index = 0
         if fn:
             self.fn     = fn
-            reader      = Jets(fn, nev, pseudojets=False)
-            self.events = np.array(reader.values())
+            reader      = Jets(fn, nev)
+            self.events = reader.values()
 
         
 #======================================================================
