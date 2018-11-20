@@ -18,6 +18,7 @@ class GroomEnv(gym.Env):
         # read in the events
         self.fn      = fn
         self.outfn   = None
+        self.nev     = nev
         reader       = Jets(fn, nev)
         self.events  = reader.values()
 

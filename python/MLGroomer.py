@@ -12,11 +12,19 @@ from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 
+from hyperopt import fmin, tpe, hp, Trials, space_eval
+from hyperopt import STATUS_OK
+from time import time
+
 import os, argparse, pickle
 
+
 #---------------------------------------------------------------------- 
-def model_construct(hps):
-    """Construct a neural network to use with the DQN agent."""
+# https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
+def build_model(hps):
+    """Create a DQN agent to be used on lund inputs."""
+
+    print('Constructing DQN agent, model setup:', hps)
     model = Sequential()
     if hps['architecture']=='Dense':
         model.add(Flatten(input_shape=(1,) + hps['input_dim']))
@@ -35,14 +43,6 @@ def model_construct(hps):
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     print(model.summary())
-    return model
-    
-#---------------------------------------------------------------------- 
-# https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
-def dqn_construct(hps):
-    """Create a DQN agent to be used on lund inputs."""
-    # we build a very simple model consisting of 4 dense layers or LSTM
-    model = model_construct(hps)
     
     # set up the DQN agent
     memory = SequentialMemory(limit=500000, window_length=1)
@@ -50,43 +50,110 @@ def dqn_construct(hps):
     agent = DQNAgent(model=model, nb_actions=hps['nb_actions'],
                      memory=memory, nb_steps_warmup=500,
                      target_model_update=1e-2, policy=policy)
-    agent.compile(Adam(lr=1e-3), metrics=['mae'])
+    agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
     
     return agent
 
+
 #---------------------------------------------------------------------- 
-def run_model(network, fn, mass, width, nstep, nev=-1, logname='log'):
+def build_and_train_model(groomer_env, groomer_agent_setup):
     """Run a test model"""
+    dqn = build_model(groomer_agent_setup)
 
-    # set up environment
-    env = GroomEnv(fn, mass=mass, mass_width=width, nev=nev, target_prec=0.05)
-
-    # hyperparameters
-    dqn_hps = {
-        'input_dim': env.observation_space.shape,
-        'nb_actions': 2,
-        'architecture': network,
-        'description': 'test model',
-        'model_name': 'DQN_%s_nev%i_nstep%i' % (network, nev, nstep)
-    }
-
-    print('Constructing DQN agent...')
-    dqn = dqn_construct(dqn_hps)
-
-    print('Constructing callbacks')
-    tensorboard = TensorBoard(log_dir='logs/%s' % logname)
+    logdir = 'logs/{}'.format(time())
+    print(f'Constructing tensorboard log in {logdir}')
+    tensorboard = TensorBoard(log_dir=logdir)
 
     print('Fitting DQN agent...')
-    dqn.fit(env, nb_steps=nstep, visualize=False, verbose=1, callbacks=[tensorboard])
+    r = dqn.fit(groomer_env, nb_steps=groomer_agent_setup['nstep'],
+                visualize=False, verbose=1, callbacks=[tensorboard])
 
-    print('Saving weights...')
     # After training is done, we save the final weights.
-    dqn.save_weights('../models/'+dqn_hps['model_name']+'.h5', overwrite=True)
+    model_name = '../models/DQN_%s_nev%i_nstep%i.h5' % (groomer_agent_setup['architecture'], 
+                                                        groomer_env.nev, groomer_agent_setup['nstep'])
+    print(f'Saving weights to {model_name}')
+    dqn.save_weights(model_name, overwrite=True)
 
-    return dqn, env
+    # compute nominal reward after training
+    loss = np.max(np.median(r.history['episode_reward']))
+    print(f'MAX MEDIAN REWARD: {loss}')
+
+    return loss, dqn
+
+
+#----------------------------------------------------------------------
+def run_hyperparameter_scan(groomer_env):
+    """Running a hyperparameter scan using hyperopt.
+    TODO: implement cross-validation, e.g. k-fold, or randomized cross-validation.
+    TODO: use test data as hyper. optimization goal.
+    TODO: better import/export for the best model, wait to DQNAgentGroom
+    """
+    # control scan parameters
+    # change this flags
+    search_space = {
+        'nb_actions': 2,
+        'architecture': hp.choice('architecture', ['Dense', 'LSTM']),
+        'learning_rate': hp.loguniform('learning_rate', -10, 0),
+        'nstep': hp.choice('nstep', [100, 1000]),
+        'input_dim': groomer_env.observation_space.shape
+    }
+
+    print('Performing hyperparamter scan...')
+    trials = Trials()
+    best = fmin(lambda p: {'loss': -build_and_train_model(groomer_env, p)[0], 'status': STATUS_OK},
+                search_space, algo=tpe.suggest, max_evals=5, trials=trials)
     
+    best_setup = space_eval(search_space, best)
+    print('\nBest scan setup:')
+    print(best_setup)
+
+    log = 'hyperopt_log_{}.pickle'.format(time())
+    with open(log,'wb') as wfp:
+        print(f'Saving trials in {log}')
+        pickle.dump(trials.trials, wfp)
+
+
+#----------------------------------------------------------------------
+def main(args):
+    # groomer common environment setup
+    groomer_env = GroomEnv(args.fn, mass=args.mass,
+                           mass_width=args.width, nev=args.nev, target_prec=0.05)
+    if args.scan:
+        run_hyperparameter_scan(groomer_env)
+    else:
+        # create the DQN agent and train it.
+        groomer_agent_setup = {
+            'nb_actions': 2,
+            'architecture': 'LSTM' if args.lstm else 'Dense',
+            'learning_rate': 1e-3,
+            'nstep': args.nstep,
+            'input_dim': groomer_env.observation_space.shape
+        }
+        _, dqn = build_and_train_model(groomer_env, groomer_agent_setup)
+
+        if args.testname:
+            fnres = args.testname
+        else:
+            fnres = 'test_%s.pickle' % 'LSTM' if args.lstm else 'Dense'
+
+        print('Done with training, now testing on sample set')
+        if os.path.exists(fnres):
+            os.remove(fnres)
+            
+        # now use model trained by DQN to groom test sample
+        groomer = Groomer(dqn.model, dqn.test_policy)
+        reader = Jets(args.testfn, 10000)
+        events = reader.values()
+        groomed_jets = []
+        for jet in events:
+            groomed_jets.append(groomer(jet))
+        with open(fnres,'wb') as wfp:
+            pickle.dump(groomed_jets, wfp)
+
+
 #---------------------------------------------------------------------- 
 if __name__ == "__main__":
+    """Parsing command line arguments"""
     # read command line arguments
     parser = argparse.ArgumentParser(description='Train an ML groomer.')
     parser.add_argument('--lstm',action='store_true',dest='lstm')
@@ -99,37 +166,8 @@ if __name__ == "__main__":
                         dest='testfn')
     parser.add_argument('--massgoal',type=float, default=80.385,dest='mass')
     parser.add_argument('--masswidth',type=float, default=1.0,dest='width')
-    parser.add_argument('--logname',type=str, default='DEFAULT')
     parser.add_argument('--testname',type=str, default=None)
+    parser.add_argument('--scan', action='store_true', dest='scan')
 
     args = parser.parse_args()
-
-    if args.lstm:
-        network='LSTM'
-    else:
-        network='Dense'
-    # create the DQN agent and train it.
-    dqn, env = run_model(network, args.fn, args.mass, args.width, args.nstep, args.nev, args.logname)
-
-    if args.testname:
-        fnres = args.testname
-    else:
-        fnres = 'test_%s.pickle' % network
-
-    print('Done with training, now testing on sample set')
-    if os.path.exists(fnres):
-        os.remove(fnres)
-        
-    # now use model trained by DQN to groom test sample
-    groomer = Groomer(dqn.model, dqn.test_policy)
-    reader = Jets(args.testfn, 10000)
-    events = reader.values()
-    groomed_jets = []
-    for jet in events:
-        groomed_jets.append(groomer(jet))
-    with open(fnres,'wb') as wfp:
-        pickle.dump(groomed_jets, wfp)
-
-    # env.testmode(fnres, args.testfn)
-    # # test the groomer on 5000 events (saved as "test_network.pickle")
-    # dqn.test(env, nb_episodes=10000, visualize=True, verbose=0)
+    main(args)
