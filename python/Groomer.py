@@ -36,3 +36,11 @@ class Groomer:
                     groomed_branches+=[parents[1]]
         # return four-momentum of groomed jet
         return groomed_jet
+
+    # def save_groomer(filename):
+    #     save_model(filename)
+    #     save_policy(filename)
+
+    # def load_groomer(filename):
+    #     model  = load_model(filename)
+    #     policy = load_policy(filename)
