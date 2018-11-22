@@ -1,50 +1,34 @@
-from GroomEnv import GroomEnv
 from create_image import Jets
-import numpy as np
-
-from DQNAgentGroom import DQNAgentGroom
-from rl.policy import BoltzmannQPolicy
-from rl.memory import SequentialMemory
-
+from models import build_and_train_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
-from hyperopt import STATUS_OK
 from time import time
-
-import os, argparse, pickle, pprint
-import models
+import os, argparse, pickle, pprint, json
+from shutil import copyfile
 
 
 #----------------------------------------------------------------------
-def run_hyperparameter_scan(args):
+def run_hyperparameter_scan(search_space):
     """Running a hyperparameter scan using hyperopt.
     TODO: implement cross-validation, e.g. k-fold, or randomized cross-validation.
     TODO: use test data as hyper. optimization goal.
     TODO: better import/export for the best model, wait to DQNAgentGroom
     """
-    # control scan parameters
-    # change this flags
-    search_space = {
-        'scan': True,
-        'nb_actions': 2,
-        'architecture': hp.choice('architecture', ['Dense', 'LSTM']),
-        'learning_rate': hp.loguniform('learning_rate', -10, 0),
-        'nstep': hp.choice('nstep', [100, 1000]),
-        'groomer_env': vars(args)
-    }
 
     print('[+] Performing hyperparamter scan...')
-    if args.cluster:
-        trials = MongoTrials('mongo://localhost:1234/groomer/jobs', exp_key='exp1')
+    if search_space['cluster']['enable']:
+        url = search_space['cluster']['url']
+        key = search_space['cluster']['exp_key']
+        trials = MongoTrials(url, exp_key=key)
     else:
         trials = Trials()
-    best = fmin(models.build_and_train_model, search_space, algo=tpe.suggest, max_evals=5, trials=trials)
+    best = fmin(build_and_train_model, search_space, algo=tpe.suggest, max_evals=5, trials=trials)
     
     best_setup = space_eval(search_space, best)
     print('\n[+] Best scan setup:')
     pprint.pprint(best_setup)
 
-    log = 'hyperopt_log_{}.pickle'.format(time())
+    log = '%s/hyperopt_log_{}.pickle'.format(time()) % search_space['output']
     with open(log,'wb') as wfp:
         print(f'[+] Saving trials in {log}')
         pickle.dump(trials.trials, wfp)
@@ -55,36 +39,26 @@ def run_hyperparameter_scan(args):
 
 
 #----------------------------------------------------------------------
-def main(args):
+def main(setup):
     # groomer common environment setup
-    if args.scan:
-        groomer_agent_setup = run_hyperparameter_scan(args)
+    if setup.get('scan'):
+        groomer_agent_setup = run_hyperparameter_scan(setup)
     else:
         # create the DQN agent and train it.
-        groomer_agent_setup = {
-            'scan': False,
-            'nb_actions': 2,
-            'architecture': 'LSTM' if args.lstm else 'Dense',
-            'learning_rate': 1e-3,
-            'nstep': args.nstep,
-            'groomer_env': vars(args)
-        }
+        groomer_agent_setup = setup
     
     print('[+] Training best model:')
-    dqn = models.build_and_train_model(groomer_agent_setup)
-
-    if args.testname:
-        fnres = args.testname
-    else:
-        fnres = 'test_%s.pickle' % 'LSTM' if args.lstm else 'Dense'
+    dqn = build_and_train_model(groomer_agent_setup)
+    
+    fnres = '%s/test_predictions.pickle' % setup['output']
 
     print('[+] Done with training, now testing on sample set')
     if os.path.exists(fnres):
         os.remove(fnres)
-            
+    
     # now use model trained by DQN to groom test sample
     groomer = dqn.groomer()
-    reader = Jets(args.testfn, 10000)
+    reader = Jets(setup['groomer_env']['testfn'], 10000)
     events = reader.values()
     groomed_jets = []
     for jet in events:
@@ -93,24 +67,50 @@ def main(args):
         pickle.dump(groomed_jets, wfp)
 
 
+def load_json(runcard_file):
+    """Loads json, execute python expressions, and sets
+    scan flags accordingly to the syntax.
+    """
+    with open(runcard_file, 'r') as f:
+        runcard = json.load(f)
+    runcard['scan'] = False
+    for key, value in runcard.get('groomer_agent').items():
+        if 'hp' in str(value):
+            runcard['groomer_agent'][key] = eval(value)
+            runcard['scan'] = True
+    return runcard
+
+
+def makedir(folder):
+    """Create directory."""
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    else:    
+        raise Exception('Output folder already exists.')
+
+
 #---------------------------------------------------------------------- 
 if __name__ == "__main__":
     """Parsing command line arguments"""
     # read command line arguments
     parser = argparse.ArgumentParser(description='Train an ML groomer.')
-    parser.add_argument('--lstm',action='store_true',dest='lstm')
-    parser.add_argument('--nev',type=int, default=500000,dest='nev')
-    parser.add_argument('--nstep',type=int, default=500000,dest='nstep')
-    parser.add_argument('--file',action='store',
-                        default='../constit-long.json.gz',dest='fn')
-    parser.add_argument('--testfile',action='store',
-                        default='../sample_WW_2TeV_CA.json.gz',
-                        dest='testfn')
-    parser.add_argument('--massgoal',type=float, default=80.385,dest='mass')
-    parser.add_argument('--masswidth',type=float, default=1.0,dest='width')
-    parser.add_argument('--testname',type=str, default=None)
-    parser.add_argument('--scan', action='store_true', dest='scan')
-    parser.add_argument('--cluster', action='store_true', dest='cluster')    
-
+    parser.add_argument('runcard', action='store', help='A json file with the setup.')
+    parser.add_argument('--output', '-o', type=str, default=None, help='The output folder.')
     args = parser.parse_args()
-    main(args)
+
+    # load json
+    setup = load_json(args.runcard)
+
+    # create output folder
+    base = os.path.basename(args.runcard)
+    out = os.path.splitext(base)[0] 
+    if args.output is not None:
+        out = args.output
+    makedir(out)
+    setup['output'] = out
+
+    # copy runcard to output folder
+    copyfile(args.runcard, f'{out}/{base}')
+
+    # run main
+    main(setup)
