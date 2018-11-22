@@ -7,8 +7,7 @@ class DQNAgentGroom(DQNAgent):
     """DQN Agent for jet grooming"""
     def __init__(self, *args, **kwargs):
         """Initialize the DQN agent."""
-        model = kwargs.pop('model')
-        super(DQNAgentGroom, self).__init__(model, *args, **kwargs)
+        super(DQNAgentGroom, self).__init__(*args, **kwargs)
 
     def groomer(self):
         """Return the current groomer."""
