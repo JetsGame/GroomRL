@@ -39,6 +39,16 @@ class Groomer:
         # return four-momentum of groomed jet
         return groomed_jet
 
+    def save(self, filepath, overwrite=False, include_optimizer=True):
+        """Save the model to file."""
+        self.model.save(filepath, overwrite=overwrite,
+                        include_optimizer=include_optimizer)
+
+    def load_model(self, filepath, custom_objects=None, compile=True):
+        """Load model from file"""
+        self.model = load_model(filepath, custom_objects=custom_objects,
+                                compile=compile)
+
     def save_weights(self, filepath, overwrite=False):
         """Save the weights of model to file."""
         self.model.save_weights(filepath, overwrite=overwrite)
