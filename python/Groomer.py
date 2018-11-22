@@ -1,11 +1,13 @@
 from tools import declusterings, kinematics_node
+from rl.policy import GreedyQPolicy
+
 import numpy as np
 import math
 #----------------------------------------------------------------------
 class Groomer:
     """Class to handle jet grooming using an internal keras model and policy."""
     #---------------------------------------------------------------------- 
-    def __init__(self, model, policy):
+    def __init__(self, model, policy=GreedyQPolicy()):
         """Initialisation of the groomer."""
         # read in the events
         self.policy = policy
@@ -37,10 +39,10 @@ class Groomer:
         # return four-momentum of groomed jet
         return groomed_jet
 
-    # def save_groomer(filename):
-    #     save_model(filename)
-    #     save_policy(filename)
+    def save_weights(self, filepath, overwrite=False):
+        """Save the weights of model to file."""
+        self.model.save_weights(filepath, overwrite=overwrite)
 
-    # def load_groomer(filename):
-    #     model  = load_model(filename)
-    #     policy = load_policy(filename)
+    def load_weights(self, filepath):
+        """Load weights of model from file"""
+        self.model.load_weights(filepath)

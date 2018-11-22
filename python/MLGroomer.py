@@ -1,5 +1,4 @@
 from GroomEnv import GroomEnv
-from Groomer import Groomer
 from create_image import Jets
 import numpy as np
 
