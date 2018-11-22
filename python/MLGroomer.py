@@ -3,7 +3,7 @@ from Groomer import Groomer
 from create_image import Jets
 import numpy as np
 
-from rl.agents.dqn import DQNAgent
+from DQNAgentGroom import DQNAgentGroom
 from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
@@ -47,9 +47,9 @@ def build_model(hps):
     # set up the DQN agent
     memory = SequentialMemory(limit=500000, window_length=1)
     policy = BoltzmannQPolicy()
-    agent = DQNAgent(model=model, nb_actions=hps['nb_actions'],
-                     memory=memory, nb_steps_warmup=500,
-                     target_model_update=1e-2, policy=policy)
+    agent = DQNAgentGroom(model=model, nb_actions=hps['nb_actions'],
+                          memory=memory, nb_steps_warmup=500,
+                          target_model_update=1e-2, policy=policy)
     agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
     
     return agent
@@ -141,7 +141,7 @@ def main(args):
             os.remove(fnres)
             
         # now use model trained by DQN to groom test sample
-        groomer = Groomer(dqn.model, dqn.test_policy)
+        groomer = dqn.groomer()
         reader = Jets(args.testfn, 10000)
         events = reader.values()
         groomed_jets = []
