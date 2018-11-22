@@ -1,6 +1,4 @@
 from GroomEnv import GroomEnv
-from Groomer import Groomer
-from create_image import Jets
 import numpy as np
 
 from DQNAgentGroom import DQNAgentGroom
@@ -12,12 +10,10 @@ from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam
 from keras.callbacks import TensorBoard
 
-from hyperopt import fmin, tpe, hp, Trials, space_eval
-from hyperopt.mongoexp import MongoTrials
 from hyperopt import STATUS_OK
 from time import time
 
-import os, argparse, pickle, pprint
+import pprint
 
 
 #---------------------------------------------------------------------- 
@@ -50,7 +46,7 @@ def build_model(hps, input_dim):
     # set up the DQN agent
     memory = SequentialMemory(limit=500000, window_length=1)
     policy = BoltzmannQPolicy()
-    agent = DQNAgentGroom(model=model, nb_actions=hps['nb_actions'],
+    agent = DQNAgentGroom(model=model, nb_actions=2,
                           memory=memory, nb_steps_warmup=500,
                           target_model_update=1e-2, policy=policy)
     agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
@@ -61,25 +57,25 @@ def build_model(hps, input_dim):
 #---------------------------------------------------------------------- 
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""    
-    args = groomer_agent_setup['groomer_env']
-    groomer_env = GroomEnv(args['fn'], mass=args['mass'],
-                           mass_width=args['width'], 
-                           nev=args['nev'], target_prec=0.05)
+    env_setup = groomer_agent_setup.get('groomer_env')
+    groomer_env = GroomEnv(env_setup['fn'], mass=env_setup['mass'],
+                           mass_width=env_setup['width'], 
+                           nev=env_setup['nev'], target_prec=0.05)
 
-    dqn = build_model(groomer_agent_setup, 
+    agent_setup = groomer_agent_setup.get('groomer_agent')
+    dqn = build_model(agent_setup, 
                       groomer_env.observation_space.shape)
 
-    logdir = 'logs/{}'.format(time())
+    logdir = '%s/logs/{}'.format(time()) % groomer_agent_setup['output']
     print(f'[+] Constructing tensorboard log in {logdir}')
     tensorboard = TensorBoard(log_dir=logdir)
 
     print('[+] Fitting DQN agent...')
-    r = dqn.fit(groomer_env, nb_steps=groomer_agent_setup['nstep'],
+    r = dqn.fit(groomer_env, nb_steps=agent_setup['nstep'],
                 visualize=False, verbose=1, callbacks=[tensorboard])
 
     # After training is done, we save the final weights.
-    model_name = '../models/DQN_%s_nev%i_nstep%i.h5' % (groomer_agent_setup['architecture'], 
-                                                        groomer_env.nev, groomer_agent_setup['nstep'])
+    model_name = '%s/weights.h5' % groomer_agent_setup['output']
     print(f'[+] Saving weights to {model_name}')
     dqn.save_weights(model_name, overwrite=True)
 
