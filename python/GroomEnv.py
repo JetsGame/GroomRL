@@ -1,5 +1,5 @@
 import random, math, gym, copy, os, pickle
-from create_image import Jets
+from read_clustseq_json import Jets
 from tools import declusterings, kinematics_node, coords
 from gym import spaces, logger
 from gym.utils import seeding

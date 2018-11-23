@@ -1,7 +1,7 @@
 from grooming import *
 from tools import *
 from observables import *
-from create_image import Jets
+from read_clustseq_json import Jets
 import numpy as np
 import pickle
 from matplotlib import pyplot as plt

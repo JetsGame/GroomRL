@@ -1,4 +1,4 @@
-from create_image import Jets
+from read_clustseq_json import Jets
 from models import build_and_train_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
