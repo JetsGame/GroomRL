@@ -1,7 +1,9 @@
 import numpy as np
 import math
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from rl.policy import GreedyQPolicy
+from JetTree import JetTree
 
 #----------------------------------------------------------------------
 class AbstractGroomer(ABC):
@@ -23,8 +25,12 @@ class AbstractGroomer(ABC):
         # of the tree below it
 
     #----------------------------------------------------------------------
-    def __call__(self, tree):
+    def __call__(self, jet):
+        """Apply the groomer after casting the jet to a JetTree, and return groomed momenta."""
+        # TODO: replace result by reclustered jet of all remaining constituents.
+        tree = JetTree(jet)
         self._groom(tree)
+        return deepcopy([tree.node.px(),tree.node.py(),tree.node.pz(),tree.node.E()])
 
     #----------------------------------------------------------------------
     @abstractmethod

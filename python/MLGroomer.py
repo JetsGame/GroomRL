@@ -1,11 +1,11 @@
 from read_clustseq_json import Jets
-from JetTree import JetTree
 from models import build_and_train_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
 from time import time
 import os, argparse, pickle, pprint, json
 from shutil import copyfile
+from copy import deepcopy
 
 
 #----------------------------------------------------------------------
@@ -38,7 +38,6 @@ def run_hyperparameter_scan(search_space):
     best_setup['scan'] = False
     return best_setup
 
-
 #----------------------------------------------------------------------
 def main(setup):
     # groomer common environment setup
@@ -63,9 +62,7 @@ def main(setup):
     events = reader.values()
     groomed_jets = []
     for jet in events:
-        tree = JetTree(jet)
-        groomer(tree)
-        gr_jet = [tree.node.px(),tree.node.py(),tree.node.pz(),tree.node.E()]
+        gr_jet=deepcopy(groomer(jet))
         groomed_jets.append(gr_jet)
     with open(fnres,'wb') as wfp:
         pickle.dump(groomed_jets, wfp)
