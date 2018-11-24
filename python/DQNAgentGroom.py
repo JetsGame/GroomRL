@@ -24,10 +24,4 @@ class DQNAgentGroom(DQNAgent):
         """Return the current groomer."""
         return Groomer(self.model, self.test_policy)
         
-    # def save_model():
-    #     # save to json
-
-    # def load_mode(fn):
-    #     # load model from json
-
     

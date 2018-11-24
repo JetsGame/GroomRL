@@ -1,4 +1,5 @@
 from read_clustseq_json import Jets
+from JetTree import JetTree
 from models import build_and_train_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
@@ -62,7 +63,10 @@ def main(setup):
     events = reader.values()
     groomed_jets = []
     for jet in events:
-        groomed_jets.append(groomer(jet))
+        tree = JetTree(jet)
+        groomer(tree)
+        gr_jet = [tree.node.px(),tree.node.py(),tree.node.pz(),tree.node.E()]
+        groomed_jets.append(gr_jet)
     with open(fnres,'wb') as wfp:
         pickle.dump(groomed_jets, wfp)
 
