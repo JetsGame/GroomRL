@@ -1,7 +1,7 @@
 import random, math, gym, copy, os, pickle
 from read_clustseq_json import Jets
 #from tools import declusterings, kinematics_node, coords
-from JetTree import JetTree
+from JetTree import JetTree, LundCoordinates
 from gym import spaces, logger
 from gym.utils import seeding
 import heapq as hq
@@ -92,7 +92,7 @@ class GroomEnv(gym.Env):
         if not self.current_pq:
             # if priority queue is empty, set to none
             self.current=None
-            self.state = np.array([0.0,0.0])
+            self.state = np.zeros(LundCoordinates.dimension)
         else:
             # first get the tree node of branch with largest delta R separation
             self.current = hq.heappop(self.current_pq)

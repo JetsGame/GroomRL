@@ -79,7 +79,7 @@ class JetTree:
     def state(self):
         """Return state of lund coordinates."""
         if not self.lundCoord:
-            return np.array([0.0,0.0])
+            return np.zeros(LundCoordinates.dimension)
         return self.lundCoord.state()
     
     #----------------------------------------------------------------------
