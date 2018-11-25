@@ -2,7 +2,8 @@ import numpy as np
 import math
 from abc import ABC, abstractmethod
 from rl.policy import GreedyQPolicy
-from JetTree import JetTree
+from groomer.JetTree import JetTree
+from groomer.tools import declusterings, kinematics_node
 
 #----------------------------------------------------------------------
 class AbstractGroomer(ABC):
@@ -118,9 +119,6 @@ class GroomerRSD(AbstractGroomer):
             if tree.softer:
                 self._groom(tree.softer)
 
-
-
-from tools import declusterings, kinematics_node
 
 #----------------------------------------------------------------------
 class DeclustGroomer:

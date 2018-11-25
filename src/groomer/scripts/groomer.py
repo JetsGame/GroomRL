@@ -1,11 +1,14 @@
-from read_clustseq_json import Jets
-from models import build_and_train_model
+"""
+    groomer.py: the entry point for the groomer.
+"""
+from groomer.read_clustseq_json import Jets
+from groomer.models import build_and_train_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
 from time import time
-import os, argparse, pickle, pprint, json
 from shutil import copyfile
 from copy import deepcopy
+import os, argparse, pickle, pprint, json
 #import cProfile
 
 #----------------------------------------------------------------------
@@ -38,8 +41,53 @@ def run_hyperparameter_scan(search_space):
     best_setup['scan'] = False
     return best_setup
 
+
+def load_json(runcard_file):
+    """Loads json, execute python expressions, and sets
+    scan flags accordingly to the syntax.
+    """
+    with open(runcard_file, 'r') as f:
+        runcard = json.load(f)
+    runcard['scan'] = False
+    for key, value in runcard.get('groomer_agent').items():
+        if 'hp' in str(value):
+            runcard['groomer_agent'][key] = eval(value)
+            runcard['scan'] = True
+    return runcard
+
+
+def makedir(folder):
+    """Create directory."""
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+    else:    
+        raise Exception('Output folder already exists.')
+
+
 #----------------------------------------------------------------------
-def main(setup):
+def main():
+
+    """Parsing command line arguments"""
+    # read command line arguments
+    parser = argparse.ArgumentParser(description='Train an ML groomer.')
+    parser.add_argument('runcard', action='store', help='A json file with the setup.')
+    parser.add_argument('--output', '-o', type=str, default=None, help='The output folder.')
+    args = parser.parse_args()
+
+    # load json
+    setup = load_json(args.runcard)
+
+    # create output folder
+    base = os.path.basename(args.runcard)
+    out = os.path.splitext(base)[0] 
+    if args.output is not None:
+        out = args.output
+    makedir(out)
+    setup['output'] = out
+
+    # copy runcard to output folder
+    copyfile(args.runcard, f'{out}/{base}')
+    
     # groomer common environment setup
     if setup.get('scan'):
         groomer_agent_setup = run_hyperparameter_scan(setup)
@@ -66,53 +114,3 @@ def main(setup):
         groomed_jets.append(gr_jet)
     with open(fnres,'wb') as wfp:
         pickle.dump(groomed_jets, wfp)
-
-
-def load_json(runcard_file):
-    """Loads json, execute python expressions, and sets
-    scan flags accordingly to the syntax.
-    """
-    with open(runcard_file, 'r') as f:
-        runcard = json.load(f)
-    runcard['scan'] = False
-    for key, value in runcard.get('groomer_agent').items():
-        if 'hp' in str(value):
-            runcard['groomer_agent'][key] = eval(value)
-            runcard['scan'] = True
-    return runcard
-
-
-def makedir(folder):
-    """Create directory."""
-    if not os.path.exists(folder):
-        os.mkdir(folder)
-    else:    
-        raise Exception('Output folder already exists.')
-
-
-#---------------------------------------------------------------------- 
-if __name__ == "__main__":
-    """Parsing command line arguments"""
-    # read command line arguments
-    parser = argparse.ArgumentParser(description='Train an ML groomer.')
-    parser.add_argument('runcard', action='store', help='A json file with the setup.')
-    parser.add_argument('--output', '-o', type=str, default=None, help='The output folder.')
-    args = parser.parse_args()
-
-    # load json
-    setup = load_json(args.runcard)
-
-    # create output folder
-    base = os.path.basename(args.runcard)
-    out = os.path.splitext(base)[0] 
-    if args.output is not None:
-        out = args.output
-    makedir(out)
-    setup['output'] = out
-
-    # copy runcard to output folder
-    copyfile(args.runcard, f'{out}/{base}')
-
-    # run main
-    main(setup)
-    #cProfile.run("main(setup)")

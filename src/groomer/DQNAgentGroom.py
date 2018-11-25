@@ -1,4 +1,4 @@
-from Groomer import Groomer
+from groomer.Groomer import Groomer
 from rl.agents.dqn import DQNAgent
 
 
