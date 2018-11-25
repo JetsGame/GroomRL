@@ -7,21 +7,6 @@ from JetTree import JetTree
 #----------------------------------------------------------------------
 class AbstractGroomer(ABC):
     """AbstractGroomer class."""
-    def _remove_soft(self,tree):
-        """Remove the softer branch of a JetTree node."""
-        # start by removing softer parent momentum from the rest of the tree
-        child = tree.child
-        while(child):
-            child.node-=tree.softer.node
-            child=child.child 
-        # then move the harder branch to the current node,
-        # effectively deleting the soft branch
-        newTree = tree.harder
-        tree.node   = newTree.node
-        tree.softer = newTree.softer 
-        tree.harder = newTree.harder
-        # NB: tree.child doesn't change, we are just moving up the part
-        # of the tree below it
 
     #----------------------------------------------------------------------
     def __call__(self, jet):
@@ -29,7 +14,7 @@ class AbstractGroomer(ABC):
         # TODO: replace result by reclustered jet of all remaining constituents.
         tree = JetTree(jet)
         self._groom(tree)
-        return [tree.node.px(),tree.node.py(),tree.node.pz(),tree.node.E()]
+        return tree.jet()
 
     #----------------------------------------------------------------------
     @abstractmethod
@@ -60,7 +45,7 @@ class Groomer(AbstractGroomer):
         if action==1:
             # call internal method to remove soft branch and replace
             # current tree node with harder branch
-            self._remove_soft(tree)
+            tree.remove_soft()
             # now we groom the new tree, since both nodes have been changed
             self._groom(tree)
             
@@ -124,7 +109,7 @@ class GroomerRSD(AbstractGroomer):
         if remove_soft:
             # call internal method to remove soft branch and replace
             # current tree node with harder branch
-            self._remove_soft(tree)
+            tree.remove_soft()
             # now we groom the new tree, since both nodes have been changed
             self._groom(tree)
         else:

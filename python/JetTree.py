@@ -52,6 +52,23 @@ class JetTree:
             self.harder = JetTree(j1, self)
             self.softer = JetTree(j2, self)
 
+    def remove_soft(self):
+        """Remove the softer branch of the JetTree node."""
+        # start by removing softer parent momentum from the rest of the tree
+        child = self.child
+        while(child):
+            child.node-=self.softer.node
+            child=child.child 
+        del self.softer
+        # then move the harder branch to the current node,
+        # effectively deleting the soft branch
+        newTree = self.harder
+        self.node   = newTree.node
+        self.softer = newTree.softer 
+        self.harder = newTree.harder
+        # NB: tree.child doesn't change, we are just moving up the part
+        # of the tree below it
+        
     #----------------------------------------------------------------------
     def lundCoord(self):
         """Return LundCoordinates corresponding to current node."""
@@ -59,4 +76,42 @@ class JetTree:
             return None
         return LundCoordinates(self.harder.node, self.softer.node)
 
+    #----------------------------------------------------------------------
+    def state(self):
+        """Return state of lund coordinates."""
+        lundCoord = self.lundCoord()
+        if not lundCoord:
+            return np.array([0.0,0.0])
+        return lundCoord.state()
+    
+    #----------------------------------------------------------------------
+    def delta(self):
+        """Return the Delta R separation between the subjets (for ordering of nodes)."""
+        if not self.harder or not self.softer:
+            return 0.0
+        return self.harder.node.delta_R(self.softer.node)
 
+    #----------------------------------------------------------------------
+    def jet(self, pseudojet=False):
+        """Return the kinematics of the JetTree."""
+        #TODO: implement pseudojet option which returns a pseudojet
+        #      with the reclustered constituents (after grooming)
+        if not pseudojet:
+            return np.array([self.node.px(),self.node.py(),self.node.pz(),self.node.E()])
+        else:
+            raise ValueError("JetTree: jet() with pseudojet return value not implemented.")
+
+    #----------------------------------------------------------------------
+    def __lt__(self, other_tree):
+        """Comparison operator needed for priority queue."""
+        return self.delta() > other_tree.delta()
+
+    #----------------------------------------------------------------------
+    def __del__(self):
+        """Delete the node."""
+        if self.softer:
+            del self.softer
+        if self.harder:
+            del self.harder
+        del self.node
+        del self
