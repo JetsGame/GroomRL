@@ -6,7 +6,7 @@ from time import time
 import os, argparse, pickle, pprint, json
 from shutil import copyfile
 from copy import deepcopy
-
+#import cProfile
 
 #----------------------------------------------------------------------
 def run_hyperparameter_scan(search_space):
@@ -115,3 +115,4 @@ if __name__ == "__main__":
 
     # run main
     main(setup)
+    #cProfile.run("main(setup)")

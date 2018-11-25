@@ -34,11 +34,10 @@ class Groomer(AbstractGroomer):
     #----------------------------------------------------------------------
     def _groom(self, tree):
         """Apply grooming to a jet."""
-        lundCoord = tree.lundCoord()
-        if not lundCoord:
+        if not tree.lundCoord:
             # current node has no subjets => no grooming
             return
-        state=lundCoord.state()
+        state=tree.state()
         # get an action from the policy using the state and model
         q_values = self.model.predict_on_batch(np.array([[state]])).flatten()
         action   = self.policy.select_action(q_values=q_values)
@@ -94,11 +93,10 @@ class GroomerRSD(AbstractGroomer):
     #----------------------------------------------------------------------
     def _groom(self, tree):
         """Apply RSD grooming to a jet."""
-        lundCoord = tree.lundCoord()
-        if not lundCoord:
+        if not tree.lundCoord:
             # current node has no subjets => no grooming
             return
-        state=lundCoord.state()
+        state=tree.state()
         if not state.size>0:
             # current node has no subjets => no grooming
             return

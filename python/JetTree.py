@@ -37,20 +37,24 @@ class JetTree:
         """Initialize a new node, and create its two parents if they exist."""
         self.harder = None
         self.softer = None
+        self.delta2 = 0.0
+        self.lundCoord = None
         # first define the current node
-        self.node   = pseudojet
+        self.node = np.array([pseudojet.px(),pseudojet.py(),pseudojet.pz(),pseudojet.E()])
         # if it has a direct child (i.e. one level further up in the
         # tree), give a link to the corresponding tree object here
         self.child  = child
         j1 = fj.PseudoJet()
         j2 = fj.PseudoJet()
-        if self.node and self.node.has_parents(j1,j2):
+        if pseudojet and pseudojet.has_parents(j1,j2):
             # order the parents in pt
             if (j2.pt() > j1.pt()):
                 j1,j2=j2,j1
             # then create two new tree nodes with j1 and j2
             self.harder = JetTree(j1, self)
             self.softer = JetTree(j2, self)
+            self.delta2 = j1.squared_distance(j2)
+            self.lundCoord = LundCoordinates(j1, j2)
 
     def remove_soft(self):
         """Remove the softer branch of the JetTree node."""
@@ -66,52 +70,39 @@ class JetTree:
         self.node   = newTree.node
         self.softer = newTree.softer 
         self.harder = newTree.harder
+        self.delta  = newTree.delta2
+        self.lundCoord = newTree.lundCoord
         # NB: tree.child doesn't change, we are just moving up the part
         # of the tree below it
-        
-    #----------------------------------------------------------------------
-    def lundCoord(self):
-        """Return LundCoordinates corresponding to current node."""
-        if not self.harder or not self.softer:
-            return None
-        return LundCoordinates(self.harder.node, self.softer.node)
 
     #----------------------------------------------------------------------
     def state(self):
         """Return state of lund coordinates."""
-        lundCoord = self.lundCoord()
-        if not lundCoord:
+        if not self.lundCoord:
             return np.array([0.0,0.0])
-        return lundCoord.state()
+        return self.lundCoord.state()
     
-    #----------------------------------------------------------------------
-    def delta(self):
-        """Return the Delta R separation between the subjets (for ordering of nodes)."""
-        if not self.harder or not self.softer:
-            return 0.0
-        return self.harder.node.delta_R(self.softer.node)
-
     #----------------------------------------------------------------------
     def jet(self, pseudojet=False):
         """Return the kinematics of the JetTree."""
         #TODO: implement pseudojet option which returns a pseudojet
         #      with the reclustered constituents (after grooming)
         if not pseudojet:
-            return np.array([self.node.px(),self.node.py(),self.node.pz(),self.node.E()])
+            return self.node
         else:
             raise ValueError("JetTree: jet() with pseudojet return value not implemented.")
 
     #----------------------------------------------------------------------
     def __lt__(self, other_tree):
         """Comparison operator needed for priority queue."""
-        return self.delta() > other_tree.delta()
+        return self.delta2 > other_tree.delta2
 
     #----------------------------------------------------------------------
     def __del__(self):
         """Delete the node."""
-        if self.softer:
-            del self.softer
-        if self.harder:
-            del self.harder
-        del self.node
-        del self
+        # if self.softer:
+        #     del self.softer
+        # if self.harder:
+        #     del self.harder
+        # del self.node
+        # del self

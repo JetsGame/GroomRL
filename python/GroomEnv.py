@@ -1,8 +1,10 @@
 import random, math, gym, copy, os, pickle
 from read_clustseq_json import Jets
-from tools import declusterings, kinematics_node, coords
+#from tools import declusterings, kinematics_node, coords
+from JetTree import JetTree
 from gym import spaces, logger
 from gym.utils import seeding
+import heapq as hq
 import fastjet as fj
 import numpy as np
 import json, warnings
@@ -26,18 +28,16 @@ class GroomEnv(gym.Env):
         self.massgoal      = mass
         self.target_prec   = target_prec
         self.mass_width    = mass_width
-        self.declust_index = 0
-        self.event_index   = -1
-        self.current       = self.get_random_declust()
+        self.root          = None
+        # self.event_index   = -1
 
         # set up observation and action space
-        self.action_space = spaces.Discrete(2)
+        self.action_space      = spaces.Discrete(2)
         self.observation_space = spaces.Box(low, high)
 
         # set up some internal parameters
         self.seed()
         self.viewer = None
-        self.state  = self.get_state()
 
         # set the reward function
         if reward=='cauchy':
@@ -70,31 +70,47 @@ class GroomEnv(gym.Env):
         print('Setting up %s' % self.description)
 
     #---------------------------------------------------------------------- 
-    def get_random_declust(self):
-        """Get a random declustering from the list of events"""
-        # select a random event (or the next one if in testmode)
-        if (self.event_index >= 0):
-            # this is for test mode only: run sequentially through the
-            # events to groom each one once.
-            if (self.event_index >= len(self.events)):
-                # check if we are beyond range, if so print warning
-                # and loop back
-                warnings.warn('Requested too many episodes, resetting to beginning of event file')
-                self.event_index = 0
-            event = self.events[self.event_index]
-            self.event_index = self.event_index + 1
-        else:
-            # if in training mode, take a random event in the list
-            event = random.choice(self.events)
-        return declusterings(event)
+    def get_random_tree(self):
+        """Get a random jet tree from the list of events"""
+        # if (self.event_index >= 0):
+        #     # this is for test mode only: run sequentially through the
+        #     # events to groom each one once.
+        #     if (self.event_index >= len(self.events)):
+        #         # check if we are beyond range, if so print warning
+        #         # and loop back
+        #         warnings.warn('Requested too many episodes, resetting to beginning of event file')
+        #         self.event_index = 0
+        #     event = self.events[self.event_index]
+        #     self.event_index = self.event_index + 1
+        # else:
+        #     # if in training mode, take a random event in the list
+        #     event = random.choice(self.events)
+        # get random event
+        event = random.choice(self.events)
+        return JetTree(event)
 
-    #---------------------------------------------------------------------- 
-    def get_state(self):
-        """Get the state of the current declustering (i.e. Lund coordinates)"""
-        curInd=self.declust_index
-        if (curInd < 0) or (curInd >= len(self.current)):
-            return np.array([0, 0])
-        return kinematics_node(self.current[curInd])
+    #----------------------------------------------------------------------
+    def reset_current_tree(self):
+        """Set up the priority queue with the first node."""
+        if self.root:
+            del self.root
+        self.root       = self.get_random_tree()
+        self.current_pq = []
+        hq.heappush(self.current_pq, self.root)
+        self.set_next_node()
+
+    #----------------------------------------------------------------------
+    def set_next_node(self):
+        """Set the current declustering node using the priority queue."""
+        if not self.current_pq:
+            # if priority queue is empty, set to none
+            self.current=None
+            self.state = np.array([0.0,0.0])
+        else:
+            # first get the tree node of branch with largest delta R separation
+            self.current = hq.heappop(self.current_pq)
+            # then set up the internal state to current values
+            self.state = self.current.state()
 
     #----------------------------------------------------------------------
     def __reward_Cauchy(self, x):
@@ -142,6 +158,7 @@ class GroomEnv(gym.Env):
     def reward(self, mass, lnz, lnDelta, is_groomed):
         """Full reward function."""
         return self.reward_mass(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
+
     #---------------------------------------------------------------------- 
     def seed(self, seed=None):
         """Initialize the seed."""
@@ -152,109 +169,83 @@ class GroomEnv(gym.Env):
     def step(self, action):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-        declust = self.current
-        node, children, tag, parents, j1, j2 = declust[self.declust_index]
-        lnz, lnDelta = self.get_state()
-        self.declust_index+=1
+        tree = self.current
+        lnz, lnDelta = self.state
+
         remove_soft = (action==1)
         # if action==1, then we remove the softer branch
         if remove_soft:
-            # add tag of softer child to list of things to delete
-            branch_torem = [parents[1]] if parents[1]>0 else []
-            while branch_torem:
-                # remove all declusterings whose ID is in our list of stuff to delete
-                i=self.declust_index
-                while i < len(declust):
-                    if declust[i][2] in branch_torem:
-                        # if we delete the branch, then add its parents (i.e. declust[i][3])
-                        # to the list of things to remove (and make sure to only add valid IDs>0)
-                        branch_torem+=[j for j in declust[i][3] if j>0]
-                        del declust[i]
-                    else:
-                        i+=1
-                del branch_torem[0]
-                
-            for i in range(self.declust_index):
-                # loop over previous declusterings (children) and remove momentum
-                # of soft emission if it is a parent of current node
-                if declust[i][2] in children+[tag]:
-                    declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
-                    # then remove it also along the j1 or j2 components of the node
-                    # with which it is associated
-                    # if j1 tag from node i (declust[i][3][0]) is in the list of children, groom it
-                    if declust[i][3][0] in children+[tag]:
-                        # remove soft emission from j1 of node i (declust[i][4])
-                        declust[i][4] = [a - b for a, b in zip(declust[i][4], j2)]
-                    # if j2 tag from node i (declust[i][3][1]) is in the list of children, groom it
-                    if declust[i][3][1] in children+[tag]:
-                        # remove soft emission from j2 of node i (declust[i][5])
-                        declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
+            tree.remove_soft()
+            
+        # then add the subjets to the priority_queue
+        if tree.harder and tree.harder.delta2 > 0.0:
+            hq.heappush(self.current_pq, tree.harder)
+        if tree.softer and tree.softer.delta2 > 0.0:
+            hq.heappush(self.current_pq, tree.softer)
+            
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
-        jet  = declust[0][0]
+        jet  = self.root.jet()
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
         
         # calculate a reward
         reward = self.reward(mass, lnz, lnDelta, action==1)
 
-
-        # replace the internal declustering list with the current one
-        self.current = declust
-        self.state = self.get_state()
+        # move to the next node in the clustering sequence
+        self.set_next_node()
+        
         # if we are at the end of the declustering list, then we are done for this event.
-        done = bool(self.declust_index >= len(declust))
+        done = bool(not self.current)
 
-        #print(action," => ",reward,", ",done, "  .. ",self.state)
         # return the state, reward, and status
         return self.state, reward, done, {}
 
     #---------------------------------------------------------------------- 
     def reset(self):
         """Reset internal list of declusterings to a new random jet."""
-        self.current = self.get_random_declust()
-        self.declust_index = 0
-        self.state = self.get_state()
+        self.reset_current_tree()
         return self.state
 
     #---------------------------------------------------------------------- 
     def render(self, mode='human'):
         """Save masses in an output files"""
-        # reached end of grooming and there is an output file
-        if (self.declust_index >= len(self.current) and self.outfn):
-            constituents = []
-            if os.path.exists(self.outfn):
-                with open(self.outfn,'rb') as rfp: 
-                    constituents = pickle.load(rfp)
+        pass
+        # # reached end of grooming and there is an output file
+        # if (self.declust_index >= len(self.current) and self.outfn):
+        #     constituents = []
+        #     if os.path.exists(self.outfn):
+        #         with open(self.outfn,'rb') as rfp: 
+        #             constituents = pickle.load(rfp)
 
-            # # doesn't work
-            # jet = []
-            # for j, children, tag, parents, j1, j2 in self.current:
-            #     if parents[0] < 0:
-            #         jet.append(j1)
-            #     if parents[1] < 0:
-            #         jet.append(j2)
-            # constituents.append(jet)
+        #     # # doesn't work
+        #     # jet = []
+        #     # for j, children, tag, parents, j1, j2 in self.current:
+        #     #     if parents[0] < 0:
+        #     #         jet.append(j1)
+        #     #     if parents[1] < 0:
+        #     #         jet.append(j2)
+        #     # constituents.append(jet)
             
-            constituents.append(self.current[0][0])
-            with open(self.outfn,'wb') as wfp:
-                pickle.dump(constituents, wfp)
+        #     constituents.append(self.current[0][0])
+        #     with open(self.outfn,'wb') as wfp:
+        #         pickle.dump(constituents, wfp)
 
     #---------------------------------------------------------------------- 
     def close(self):
         if self.viewer: self.viewer.close()
 
 
-    #---------------------------------------------------------------------- 
-    def testmode(self, outfn, fn=None, nev=-1):
-        """Switch the environment to test mode."""
-        self.outfn         = outfn
-        self.event_index   = 0
-        self.declust_index = 0
-        if fn:
-            self.fn     = fn
-            reader      = Jets(fn, nev)
-            self.events = reader.values()
+    # #---------------------------------------------------------------------- 
+    # def testmode(self, outfn, fn=None, nev=-1):
+    #     """Switch the environment to test mode."""
+    #     self.outfn         = outfn
+    #     self.event_index   = 0
+    #     self.declust_index = 0
+    #     if fn:
+    #         self.fn     = fn
+    #         reader      = Jets(fn, nev)
+    #         self.events = reader.values()
 
         
 #======================================================================
