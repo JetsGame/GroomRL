@@ -263,63 +263,28 @@ class GroomEnvSD(GroomEnv):
     def step(self, action):
         """Perform a grooming step, removing the soft branch if it fails the Soft Drop condition."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-        # get the current state, and move the intenral index forward
-        self.state = self.get_state()
-        declust = self.current
-        node, children, tag, parents, j1, j2 = declust[self.declust_index]
-        self.declust_index+=1
-        # get subjet kinematics
-        pt1,rap1,phi1 = self.coords(j1)
-        pt2,rap2,phi2 = self.coords(j2)
-        dphi=abs(phi1-phi2)
-        if dphi>math.pi:
-            dphi = 2*math.pi - dphi
-        drap=rap1-rap2
+    
+        # get the current state
+        tree = self.current
+        lnz, lnDelta = self.state
+        
         # check if soft drop condition is satisfied
-        remove_soft = (pt2/(pt1+pt2) < self.zcut * math.pow(dphi*dphi + drap*drap, self.beta/2))
+        remove_soft = (math.exp(lnz) < self.zcut * math.pow(math.exp(lnDelta), self.beta))
         # if soft drop condition is not verified, remove the soft branch.
         if remove_soft:
-            # add tag of softer child to list of things to delete
-            branch_torem = [parents[1]] if parents[1]>0 else []
-            while branch_torem:
-                # remove all declusterings whose ID is in our list of stuff to delete
-                i=self.declust_index
-                while i < len(declust):
-                    if declust[i][2] in branch_torem:
-                        # if we delete the branch, then add its parents (i.e. declust[i][3])
-                        # to the list of things to remove (and make sure to only add valid IDs>0)
-                        branch_torem+=[j for j in declust[i][3] if j>0]
-                        del declust[i]
-                    else:
-                        i+=1
-                del branch_torem[0]
-                
-            for i in range(self.declust_index):
-                # loop over previous declusterings (children) and remove momentum
-                # of soft emission if it is a parent of current node
-                if declust[i][2] in children+[tag]:
-                    declust[i][0] = [a - b for a, b in zip(declust[i][0], j2)]
-                    # then remove it also along the j1 or j2 components of the node
-                    # with which it is associated
-                    # if j1 tag from node i (declust[i][3][0]) is in the list of children, groom it
-                    if declust[i][3][0] in children+[tag]:
-                        # remove soft emission from j1 of node i (declust[i][4])
-                        declust[i][4] = [a - b for a, b in zip(declust[i][4], j2)]
-                    # if j2 tag from node i (declust[i][3][1]) is in the list of children, groom it
-                    if declust[i][3][1] in children+[tag]:
-                        # remove soft emission from j2 of node i (declust[i][5])
-                        declust[i][5] = [a - b for a, b in zip(declust[i][5], j2)]
+            tree.remove_soft()
             
-        # calculate the mass
-        # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
-        jet = declust[0][0]
-        msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
-        mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
+        # then add the subjets to the priority_queue
+        if tree.harder and tree.harder.delta2 > 0.0:
+            hq.heappush(self.current_pq, tree.harder)
+        if tree.softer and tree.softer.delta2 > 0.0:
+            hq.heappush(self.current_pq, tree.softer)
 
-        # replace the internal declustering list with the current one
-        self.current = declust
+        # move to the next node in clustering sequence
+        self.set_next_node()
+        
         # if we are at the end of the declustering list, then we are done for this event.
-        done = bool(self.declust_index >= len(declust))
+        done = bool(not self.current)
                 
         # return the state, reward, and status
         return self.state, 0.0, done, {}
