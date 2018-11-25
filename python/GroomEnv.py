@@ -72,19 +72,6 @@ class GroomEnv(gym.Env):
     #---------------------------------------------------------------------- 
     def get_random_tree(self):
         """Get a random jet tree from the list of events"""
-        # if (self.event_index >= 0):
-        #     # this is for test mode only: run sequentially through the
-        #     # events to groom each one once.
-        #     if (self.event_index >= len(self.events)):
-        #         # check if we are beyond range, if so print warning
-        #         # and loop back
-        #         warnings.warn('Requested too many episodes, resetting to beginning of event file')
-        #         self.event_index = 0
-        #     event = self.events[self.event_index]
-        #     self.event_index = self.event_index + 1
-        # else:
-        #     # if in training mode, take a random event in the list
-        #     event = random.choice(self.events)
         # get random event
         event = random.choice(self.events)
         return JetTree(event)
@@ -143,7 +130,7 @@ class GroomEnv(gym.Env):
         """
         For a given jet mass, return the output of the Soft Drop component
         of the reward function.
-        """
+        """# # 
         if is_groomed:
             reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
             # alternative implementation
@@ -211,41 +198,9 @@ class GroomEnv(gym.Env):
     def render(self, mode='human'):
         """Save masses in an output files"""
         pass
-        # # reached end of grooming and there is an output file
-        # if (self.declust_index >= len(self.current) and self.outfn):
-        #     constituents = []
-        #     if os.path.exists(self.outfn):
-        #         with open(self.outfn,'rb') as rfp: 
-        #             constituents = pickle.load(rfp)
-
-        #     # # doesn't work
-        #     # jet = []
-        #     # for j, children, tag, parents, j1, j2 in self.current:
-        #     #     if parents[0] < 0:
-        #     #         jet.append(j1)
-        #     #     if parents[1] < 0:
-        #     #         jet.append(j2)
-        #     # constituents.append(jet)
-            
-        #     constituents.append(self.current[0][0])
-        #     with open(self.outfn,'wb') as wfp:
-        #         pickle.dump(constituents, wfp)
-
     #---------------------------------------------------------------------- 
     def close(self):
         if self.viewer: self.viewer.close()
-
-
-    # #---------------------------------------------------------------------- 
-    # def testmode(self, outfn, fn=None, nev=-1):
-    #     """Switch the environment to test mode."""
-    #     self.outfn         = outfn
-    #     self.event_index   = 0
-    #     self.declust_index = 0
-    #     if fn:
-    #         self.fn     = fn
-    #         reader      = Jets(fn, nev)
-    #         self.events = reader.values()
 
         
 #======================================================================

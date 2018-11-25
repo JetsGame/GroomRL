@@ -100,9 +100,9 @@ class JetTree:
     #----------------------------------------------------------------------
     def __del__(self):
         """Delete the node."""
-        # if self.softer:
-        #     del self.softer
-        # if self.harder:
-        #     del self.harder
-        # del self.node
-        # del self
+        if self.softer:
+            del self.softer
+        if self.harder:
+            del self.harder
+        del self.node
+        del self
