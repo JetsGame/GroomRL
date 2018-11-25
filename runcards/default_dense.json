@@ -1,14 +1,14 @@
 {
   "groomer_env": {
-    "fn": "../constit-long.json.gz",
-    "testfn": "../sample_WW_2TeV_CA.json.gz",
+    "fn": "../data/constit-long.json.gz",
+    "testfn": "../data/sample_WW_2TeV_CA.json.gz",
     "cluster": false,
     "mass": 80.385,
     "nev": 50000,
     "width": 1.0
   },
   "groomer_agent": {
-    "architecture": "LSTM",
+    "architecture": "Dense",
     "learning_rate": 1e-3,
     "nb_actions": 2,
     "nstep": 50000

@@ -1,7 +1,7 @@
-from GroomEnv import GroomEnv
+from groomer.GroomEnv import GroomEnv
 import numpy as np
 
-from DQNAgentGroom import DQNAgentGroom
+from groomer.DQNAgentGroom import DQNAgentGroom
 from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 

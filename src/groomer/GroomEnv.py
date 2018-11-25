@@ -1,7 +1,7 @@
 import random, math, gym, copy, os, pickle
-from read_clustseq_json import Jets
+from groomer.read_clustseq_json import Jets
 #from tools import declusterings, kinematics_node, coords
-from JetTree import JetTree, LundCoordinates
+from groomer.JetTree import JetTree, LundCoordinates
 from gym import spaces, logger
 from gym.utils import seeding
 import heapq as hq
