@@ -70,7 +70,7 @@ class JetTree:
         self.node   = newTree.node
         self.softer = newTree.softer 
         self.harder = newTree.harder
-        self.delta  = newTree.delta2
+        self.delta2 = newTree.delta2
         self.lundCoord = newTree.lundCoord
         # NB: tree.child doesn't change, we are just moving up the part
         # of the tree below it
