@@ -15,15 +15,8 @@ from time import time
 
 import pprint
 
-
-#---------------------------------------------------------------------- 
-# https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
 def build_model(hps, input_dim):
-    """Create a DQN agent to be used on lund inputs."""
-
-    print('[+] Constructing DQN agent, model setup:')
-    pprint.pprint(hps)
-
+    """Construct the underlying model used by the DQN."""
     model = Sequential()
     if hps['architecture']=='Dense':
         model.add(Flatten(input_shape=(1,) + input_dim))
@@ -42,8 +35,18 @@ def build_model(hps, input_dim):
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     print(model.summary())
+    return model
+
+#---------------------------------------------------------------------- 
+# https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
+def build_dqn(hps, input_dim):
+    """Create a DQN agent to be used on lund inputs."""
+
+    print('[+] Constructing DQN agent, model setup:')
+    pprint.pprint(hps)
     
     # set up the DQN agent
+    model = build_model(hps, input_dim)
     memory = SequentialMemory(limit=500000, window_length=1)
     policy = BoltzmannQPolicy()
     agent = DQNAgentGroom(model=model, nb_actions=2,
@@ -63,9 +66,8 @@ def build_and_train_model(groomer_agent_setup):
                            nev=env_setup['nev'], target_prec=0.05)
 
     agent_setup = groomer_agent_setup.get('groomer_agent')
-    dqn = build_model(agent_setup, 
-                      groomer_env.observation_space.shape)
-
+    dqn = build_dqn(agent_setup, groomer_env.observation_space.shape)
+ 
     logdir = '%s/logs/{}'.format(time()) % groomer_agent_setup['output']
     print(f'[+] Constructing tensorboard log in {logdir}')
     tensorboard = TensorBoard(log_dir=logdir)

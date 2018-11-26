@@ -130,19 +130,27 @@ class LundImage:
         # set up the bin edge and width
         self.xmin = xval[0]
         self.ymin = yval[0]
-        self.x_pxl_wdth = (xval[1] - xval[0])/npxlx
-        self.y_pxl_wdth = (yval[1] - yval[0])/npxly
+        self.x_pxl_wdth = (xval[1] - xval[0])/self.npxlx
+        self.y_pxl_wdth = (yval[1] - yval[0])/self.npxly
 
     #----------------------------------------------------------------------
     def __call__(self, tree):
         """Process a jet tree and return an image of the primary Lund plane."""
         res = np.zeros((self.npxlx,self.npxly))
 
-        while(tree and tree.lundCoord):
+        self.fill(tree, res)
+        return res
+
+    #----------------------------------------------------------------------
+    def fill(self, tree, res):
+        """Fill the res array recursively with the tree declusterings"""
+        if(tree and tree.lundCoord):
             x = -tree.lundCoord.lnDelta
-            y =  tree.lundCoord.lnkt
-            xind = ceil((x - self.xmin)/self.x_pxl_wdth - 1.0)
-            yind = ceil((y - self.ymin)/self.y_pxl_wdth - 1.0)
+            y =  tree.lundCoord.lnKt
+            xind = math.ceil((x - self.xmin)/self.x_pxl_wdth - 1.0)
+            yind = math.ceil((y - self.ymin)/self.y_pxl_wdth - 1.0)
             if (xind < self.npxlx and yind < self.npxly and min(xind,yind) >= 0):
                 res[xind,yind] += 1
-        return res
+            self.fill(tree.softer, res)
+            self.fill(tree.harder, res)
+

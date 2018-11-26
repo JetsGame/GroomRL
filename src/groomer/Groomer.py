@@ -10,11 +10,16 @@ class AbstractGroomer(ABC):
     """AbstractGroomer class."""
 
     #----------------------------------------------------------------------
-    def __call__(self, jet):
+    def __call__(self, jet, returnTree = False):
         """Apply the groomer after casting the jet to a JetTree, and return groomed momenta."""
         # TODO: replace result by reclustered jet of all remaining constituents.
-        tree = JetTree(jet)
+        if type(jet)==JetTree:
+            tree = jet
+        else:
+            tree = JetTree(jet)
         self._groom(tree)
+        if returnTree:
+            return tree
         return tree.jet()
 
     #----------------------------------------------------------------------
@@ -29,7 +34,7 @@ class Groomer(AbstractGroomer):
     #---------------------------------------------------------------------- 
     def __init__(self, model, policy=GreedyQPolicy()):
         """Initialisation of the groomer."""
-        self.model  = model
+        self.model = model
         self.policy = policy
 
     #----------------------------------------------------------------------
@@ -81,8 +86,8 @@ class Groomer(AbstractGroomer):
 
 
 #----------------------------------------------------------------------
-class GroomerRSD(AbstractGroomer):
-    """GroomerRSD applies Recursive Soft Drop grooming to a JetTree."""
+class RSD(AbstractGroomer):
+    """RSD applies Recursive Soft Drop grooming to a JetTree."""
 
     #----------------------------------------------------------------------
     def __init__(self, zcut=0.05, beta=1.0, R0=1.0):
