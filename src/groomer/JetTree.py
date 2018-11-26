@@ -133,7 +133,6 @@ class LundImage:
         self.x_pxl_wdth = (xval[1] - xval[0])/npxlx
         self.y_pxl_wdth = (yval[1] - yval[0])/npxly
 
-        
     #----------------------------------------------------------------------
     def __call__(self, tree):
         """Process a jet tree and return an image of the primary Lund plane."""
