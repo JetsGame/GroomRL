@@ -72,6 +72,12 @@ class JetTree:
         self.harder = newTree.harder
         self.delta2 = newTree.delta2
         self.lundCoord = newTree.lundCoord
+        # finally set the child pointer in the two parents to
+        # the current node
+        if self.harder:
+            self.harder.child = self
+        if self.softer:
+            self.softer.child = self
         # NB: tree.child doesn't change, we are just moving up the part
         # of the tree below it
 
@@ -106,3 +112,38 @@ class JetTree:
             del self.harder
         del self.node
         del self
+
+#----------------------------------------------------------------------
+class LundImage:
+    """Class to create Lund images from a jet tree."""
+
+    #----------------------------------------------------------------------
+    def __init__(self, xval = [0.0, 7.0], yval = [-3.0, 7.0],
+                 npxlx = 50, npxly = None):
+        """Set up the LundImage instance."""
+        # set up the pixel numbers
+        self.npxlx = npxlx
+        if not npxly:
+            self.npxly = npxlx
+        else:
+            self.npxly = npxly
+        # set up the bin edge and width
+        self.xmin = xval[0]
+        self.ymin = yval[0]
+        self.x_pxl_wdth = (xval[1] - xval[0])/npxlx
+        self.y_pxl_wdth = (yval[1] - yval[0])/npxly
+
+        
+    #----------------------------------------------------------------------
+    def __call__(self, tree):
+        """Process a jet tree and return an image of the primary Lund plane."""
+        res = np.zeros((self.npxlx,self.npxly))
+
+        while(tree and tree.lundCoord):
+            x = -tree.lundCoord.lnDelta
+            y =  tree.lundCoord.lnkt
+            xind = ceil((x - self.xmin)/self.x_pxl_wdth - 1.0)
+            yind = ceil((y - self.ymin)/self.y_pxl_wdth - 1.0)
+            if (xind < self.npxlx and yind < self.npxly and min(xind,yind) >= 0):
+                res[xind,yind] += 1
+        return res
