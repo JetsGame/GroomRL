@@ -83,7 +83,7 @@ def build_and_train_model(groomer_agent_setup):
 
     if groomer_agent_setup['scan']:        
         # compute nominal reward after training
-        loss = np.max(np.median(r.history['episode_reward']))
+        loss = np.median(r.history['episode_reward'])
         print(f'[+] MAX MEDIAN REWARD: {loss}')
         res = {'loss': -loss, 'status': STATUS_OK}
     else:
