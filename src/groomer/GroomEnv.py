@@ -15,7 +15,7 @@ class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
     def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1, reward='cauchy',
-                 low=np.array([-10.0, -8.0]), high=np.array([0.0, 0.0])):
+                 low=LundCoordinates.low, high=LundCoordinates.high):
         """Initialisation of the environment."""
         # read in the events
         self.fn      = fn
@@ -157,7 +157,7 @@ class GroomEnv(gym.Env):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
         tree = self.current
-        lnz, lnDelta = self.state
+        lnz, lnDelta = self.state[:2]
 
         remove_soft = (action==1)
         # if action==1, then we remove the softer branch
@@ -221,7 +221,7 @@ class GroomEnvSD(GroomEnv):
     
         # get the current state
         tree = self.current
-        lnz, lnDelta = self.state
+        lnz, lnDelta = self.state[:2]
         
         # check if soft drop condition is satisfied
         remove_soft = (math.exp(lnz) < self.zcut * math.pow(math.exp(lnDelta), self.beta))

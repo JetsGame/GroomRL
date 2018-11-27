@@ -10,6 +10,11 @@ class LundCoordinates:
 
     # number of dimensions for the state() method
     dimension = 2
+    # the lower and upper bounds of the state vector
+    low  = np.array([-10.0, -8.0])
+    high = np.array([0.0, 0.0])
+    #low  = np.array([-10.0, -8.0, -5.0, -1.5708])
+    #high = np.array([0.0, 0.0, 8.0, 1.5708])
     
     #----------------------------------------------------------------------
     def __init__(self, j1, j2):
@@ -25,7 +30,10 @@ class LundCoordinates:
 
     #----------------------------------------------------------------------
     def state(self):
+        # WARNING: For consistency with other parts of the code,
+        #          lnz and lnDelta need to be the first two components
         return np.array([self.lnz, self.lnDelta])
+        #return np.array([self.lnz, self.lnDelta, self.lnKt, self.psi])
 
 
 #----------------------------------------------------------------------
