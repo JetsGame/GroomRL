@@ -144,5 +144,5 @@ def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0):
 
 #----------------------------------------------------------------------
 if __name__ == "__main__":
-    plot_model_mass('../../output/default_dense.json','../../output/weights.h5',
-                   '../../../data/sample_WW_2TeV_CA.json.gz') 
+    plot_mass('../../output/default_dense.json','../../output/weights.h5',
+              '../../../data/sample_WW_2TeV_CA.json.gz') 
