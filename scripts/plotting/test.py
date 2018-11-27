@@ -98,8 +98,8 @@ def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0):
     groomed_imgs = []
     rsd_imgs     = []
     for jet in events:
-        groomed_tree = groomer(tree, returnTree=True)
-        rsd_tree = rsd(tree, returnTree=True)
+        groomed_tree = groomer(jet, returnTree=True)
+        rsd_tree = rsd(jet, returnTree=True)
         groomed_imgs.append(lundImg(groomed_tree))
         plain_imgs.append(lundImg(JetTree(jet)))
         rsd_imgs.append(lundImg(rsd_tree))
