@@ -13,7 +13,7 @@ from keras.callbacks import TensorBoard
 from hyperopt import STATUS_OK
 from time import time
 
-import pprint
+import pprint, json
 
 def build_model(hps, input_dim):
     """Construct the underlying model used by the DQN."""
@@ -77,9 +77,15 @@ def build_and_train_model(groomer_agent_setup):
                 visualize=False, verbose=1, callbacks=[tensorboard])
 
     # After training is done, we save the final weights.
-    model_name = '%s/weights.h5' % groomer_agent_setup['output']
-    print(f'[+] Saving weights to {model_name}')
-    dqn.save_weights(model_name, overwrite=True)
+    weight_file = '%s/weights.h5' % groomer_agent_setup['output']
+    print(f'[+] Saving weights to {weight_file}')
+    dqn.save_weights(weight_file, overwrite=True)
+    
+    # save the model architecture in json
+    model_file = '%s/model.json' % groomer_agent_setup['output']
+    print(f'[+] Saving model to {model_file}')    
+    with open(model_file, 'w') as outfile:
+        json.dump(dqn.model.to_json(), outfile)
 
     if groomer_agent_setup['scan']:        
         # compute nominal reward after training
