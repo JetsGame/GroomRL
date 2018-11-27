@@ -7,6 +7,7 @@ import numpy as np
 import pickle, json
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+import argparse, os
 
 # def debug_rsd():
 #     from GroomEnv import GroomEnvSD
@@ -31,14 +32,14 @@ def print_stats(name, data, refmass=80.385):
     print('%s:\tmedian-diff %.2f\tavg-diff %.2f\tstd-diff %.2f' % (name, m, a, s))
 
 # plot masses and output stats for a given input file and compare to sample file with RSD
-def plot_mass_from_file(params_fn, modelwgts_fn, sample_fn, zcut=0.05, beta=1.0):
-    params = json.loads(open(params_fn).read())
-    model = build_model(params['groomer_agent'], (LundCoordinates.dimension,))
-    groomer = Groomer(model)
-    groomer.load_weights(modelwgts_fn)
-    plot_mass(groomer, sample_fn, zcut=zcut, beta=beta)
+#def plot_mass_from_file(params_fn, modelwgts_fn, sample_fn, zcut=0.05, beta=1.0, output_folder='./'):
+#    params = json.loads(open(params_fn).read())
+#    model = build_model(params['groomer_agent'], (LundCoordinates.dimension,))
+#    groomer = Groomer(model)
+#    groomer.load_weights(modelwgts_fn)
+#    plot_mass(groomer, sample_fn, zcut=zcut, beta=beta, output_folder=output_folder)
     
-def plot_mass(groomer, sample_fn, zcut=0.05, beta=1.0):
+def plot_mass(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder='./'):
     reader  = Jets(sample_fn,10000)
     rsd = RSD(zcut=zcut, beta=beta)
     events  = reader.values()
@@ -72,21 +73,21 @@ def plot_mass(groomer, sample_fn, zcut=0.05, beta=1.0):
 
     plt.xlim((0,150))
     plt.legend()
-    plt.savefig('test.pdf',bbox_inches='tight')
+    plt.savefig('%s/mass.pdf' % output_folder, bbox_inches='tight')
         
     print_stats('plain   ', mplain)
     print_stats('mrsd    ', mrsd)
     print_stats('mdqn    ', mdqn)
 
 # plot the Lund plane for a given input file, and compare to sample file with RSD
-def plot_lund_from_file(params_fn, modelwgts_fn, sample_fn, zcut=0.05, beta=1.0):
-    params = json.loads(open(params_fn).read())
-    model = build_model(params['groomer_agent'], (LundCoordinates.dimension,))
-    groomer = Groomer(model)
-    groomer.load_weights(modelwgts_fn)
-    plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0)
+#def plot_lund_from_file(params_fn, modelwgts_fn, sample_fn, zcut=0.05, beta=1.0, output_folder='./'):
+#    params = json.loads(open(params_fn).read())
+#    model = build_model(params['groomer_agent'], (LundCoordinates.dimension,))
+#    groomer = Groomer(model)
+#    groomer.load_weights(modelwgts_fn)
+#    plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder=output_folder)
     
-def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0):
+def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./"):
     # set up the reader and get array from file
     xval   = [0.0, 7.0]
     yval   = [-3.0, 7.0]
@@ -109,10 +110,10 @@ def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0):
     avg_rsd     = np.average(rsd_imgs, axis=0)
 
     # Plot the result
-    with PdfPages('test_lund.pdf') as pdf:
+    with PdfPages('%s/lund.pdf' % output_folder) as pdf:
 
         plt.rcParams.update({'font.size': 20})
-        fig=plt.figure(figsize=(12, 9))
+        plt.figure(figsize=(12, 9))
         plt.title('Averaged Lund image DQN-Grooming')
         plt.xlabel('$\ln(R / \Delta)$')
         plt.ylabel('$\ln(k_t / \mathrm{GeV})$')
@@ -143,6 +144,30 @@ def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0):
         plt.close()
 
 #----------------------------------------------------------------------
-if __name__ == "__main__":
-    plot_mass('../../output/default_dense.json','../../output/weights.h5',
-              '../../../data/sample_WW_2TeV_CA.json.gz') 
+def main():
+    """Starting point"""
+    parser = argparse.ArgumentParser(description='Diagnostics for groomer.')
+    parser.add_argument('fit_folder', action='store', help='The fit folder')
+    args = parser.parse_args()
+
+    # building output folder
+    folder = args.fit_folder.strip('/')
+    output = '%s/plots' % folder
+    os.mkdir(output)
+
+    # loading json card
+    with open('%s/%s.json' % (folder, folder)) as f:
+        runcard = json.load(f)
+
+    # loading groomer
+    modelwgts_fn = '%s/weights.h5' % folder
+    sample_fn = runcard['groomer_env']['testfn']
+    model = build_model(runcard['groomer_agent'], (LundCoordinates.dimension,))
+    groomer = Groomer(model)
+    groomer.load_weights(modelwgts_fn)
+
+    # generating invmass plot
+    plot_mass(groomer, sample_fn, output_folder=output) 
+
+    # generate lund plane plot
+    plot_lund(groomer, sample_fn, output_folder=output)

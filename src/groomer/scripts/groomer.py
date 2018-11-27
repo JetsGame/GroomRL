@@ -66,7 +66,6 @@ def makedir(folder):
 
 #----------------------------------------------------------------------
 def main():
-
     """Parsing command line arguments"""
     # read command line arguments
     parser = argparse.ArgumentParser(description='Train an ML groomer.')
