@@ -4,7 +4,7 @@
 from groomer.read_clustseq_json import Jets
 from groomer.models import build_and_train_model
 from groomer.diagnostics import plot_mass, plot_lund
-from groomer.keras_to_cpp import keras_to_cpp
+from groomer.keras_to_cpp import keras_to_cpp, check_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
 from time import time
@@ -134,4 +134,5 @@ def main():
         os.mkdir(cppdir)
         cpp_fn = '%s/model.nnet' % cppdir
         arch_dic=ast.literal_eval(groomer.model.to_json().replace('true','True').replace('null','None'))
+        check_model(groomer_agent_setup['groomer_agent'])
         keras_to_cpp(groomer.model, arch_dic['config']['layers'], cpp_fn)

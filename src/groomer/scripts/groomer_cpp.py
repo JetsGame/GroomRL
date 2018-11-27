@@ -2,7 +2,7 @@ from groomer.Groomer import Groomer, RSD
 from groomer.JetTree import *
 from groomer.observables import *
 from groomer.read_clustseq_json import Jets
-from groomer.keras_to_cpp import keras_to_cpp
+from groomer.keras_to_cpp import keras_to_cpp, check_model
 from groomer.models import build_model
 from keras.models import model_from_json
 import numpy as np
@@ -36,4 +36,5 @@ def main():
     model.load_weights(modelwgts_fn)
 
     cpp_fn = '%s/model.nnet'%output
+    check_model(runcard['groomer_agent'])
     keras_to_cpp(model, arch_dic['config']['layers'], cpp_fn, args.verbose)

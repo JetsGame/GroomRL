@@ -1,5 +1,10 @@
 # this file is adapted from dump_to_simple_cpp.py from keras2cpp
 
+def check_model(hps):
+    """Check that the model defined is portable to cpp."""
+    if hps['dropout']>0.0 or hps['architecture']=='LSTM':
+        raise ValueError("keras_to_cpp: Only Dense layers without Dropout are supported.")
+
 def keras_to_cpp(model, layerdic, cpp_fn, verbose=False):
     """Convert keras to cpp readable file."""
     with open(cpp_fn, 'w') as fout:

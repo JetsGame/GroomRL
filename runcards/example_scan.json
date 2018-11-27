@@ -8,10 +8,13 @@
     "width": 1.0
   },
   "groomer_agent": {
-    "architecture": "hp.choice('architecture', ['Dense', 'LSTM'])",
     "learning_rate": "hp.loguniform('learning_rate', -10, 0)",
     "nb_actions": 2,
-    "nstep": "hp.choice('nstep', [100, 1000])"
+    "nstep": "hp.choice('nstep', [100, 1000])",
+    "architecture": "hp.choice('architecture', ['Dense', 'LSTM'])",
+    "dropout": 0.05,
+    "nb_layers": 3,
+    "nb_units": 100
   },
   "cluster": {
     "enable": false,

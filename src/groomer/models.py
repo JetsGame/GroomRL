@@ -20,18 +20,17 @@ def build_model(hps, input_dim):
     model = Sequential()
     if hps['architecture']=='Dense':
         model.add(Flatten(input_shape=(1,) + input_dim))
-        model.add(Dense(50))
-        model.add(Activation('relu'))
-        model.add(Dense(150))
-        model.add(Activation('relu'))
-        model.add(Dense(50))
-        model.add(Activation('relu'))
-        model.add(Dropout(0.05))
+        for i in range(hps['nb_layers']):
+            model.add(Dense(hps['nb_units']))
+            model.add(Activation('relu'))
+        if hps['dropout']>0.0:
+            model.add(Dropout(hps['dropout']))
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
-        model.add(LSTM(64, input_shape = (1,max(input_dim))))
-        model.add(Dropout(0.05))
+        model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim))))
+        if hps['dropout']>0.0:
+            model.add(Dropout(hps['dropout']))
         model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     print(model.summary())
