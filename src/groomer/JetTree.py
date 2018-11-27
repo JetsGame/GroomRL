@@ -13,8 +13,8 @@ class LundCoordinates:
     # the lower and upper bounds of the state vector
     low  = np.array([-10.0, -8.0])
     high = np.array([0.0, 0.0])
-    #low  = np.array([-10.0, -8.0, -5.0, -1.5708])
-    #high = np.array([0.0, 0.0, 8.0, 1.5708])
+    # low  = np.array([-10.0, -8.0, -4.0, -1.5708, 0.0])
+    # high = np.array([0.0, 0.0, 8.0, 1.5708, 8.0])
     
     #----------------------------------------------------------------------
     def __init__(self, j1, j2):
@@ -33,7 +33,7 @@ class LundCoordinates:
         # WARNING: For consistency with other parts of the code,
         #          lnz and lnDelta need to be the first two components
         return np.array([self.lnz, self.lnDelta])
-        #return np.array([self.lnz, self.lnDelta, self.lnKt, self.psi])
+        # return np.array([self.lnz, self.lnDelta, self.lnKt, self.psi, 0.5*math.log(abs(self.msq))])
 
 
 #----------------------------------------------------------------------
@@ -86,8 +86,8 @@ class JetTree:
             self.harder.child = self
         if self.softer:
             self.softer.child = self
-        # NB: tree.child doesn't change, we are just moving up the part
-        # of the tree below it
+        # NB: self.child doesn't change, we are just moving up the part
+        #     of the tree below it
 
     #----------------------------------------------------------------------
     def state(self):

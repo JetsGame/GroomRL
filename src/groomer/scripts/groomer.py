@@ -3,12 +3,14 @@
 """
 from groomer.read_clustseq_json import Jets
 from groomer.models import build_and_train_model
+from groomer.diagnostics import plot_mass, plot_lund
+from groomer.keras_to_cpp import keras_to_cpp
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
 from time import time
 from shutil import copyfile
 from copy import deepcopy
-import os, argparse, pickle, pprint, json
+import os, argparse, pickle, pprint, json, ast
 #import cProfile
 
 #----------------------------------------------------------------------
@@ -71,6 +73,8 @@ def main():
     parser = argparse.ArgumentParser(description='Train an ML groomer.')
     parser.add_argument('runcard', action='store', help='A json file with the setup.')
     parser.add_argument('--output', '-o', type=str, default=None, help='The output folder.')
+    parser.add_argument('--plot',action='store_true',dest='plot')
+    parser.add_argument('--cpp',action='store_true',dest='cpp')
     args = parser.parse_args()
 
     # load json
@@ -85,7 +89,7 @@ def main():
     setup['output'] = out
 
     # copy runcard to output folder
-    copyfile(args.runcard, f'{out}/{base}')
+    copyfile(args.runcard, f'{out}/runcard.json')
     
     # groomer common environment setup
     if setup.get('scan'):
@@ -113,3 +117,21 @@ def main():
         groomed_jets.append(gr_jet)
     with open(fnres,'wb') as wfp:
         pickle.dump(groomed_jets, wfp)
+
+    # if requested, add plotting
+    if args.plot:
+        plotdir='%s/plots' % setup['output']
+        makedir(plotdir)
+        # generating invmass plot
+        plot_mass(groomer, setup['groomer_env']['testfn'],
+                  mass_ref=setup['groomer_env']['mass'], output_folder=plotdir) 
+        # generate lund plane plot
+        plot_lund(groomer, setup['groomer_env']['testfn'], output_folder=plotdir)
+
+    # if requested, add cpp output
+    if args.cpp:
+        cppdir = '%s/cpp' % setup['output']
+        os.mkdir(cppdir)
+        cpp_fn = '%s/model.nnet' % cppdir
+        arch_dic=ast.literal_eval(groomer.model.to_json().replace('true','True').replace('null','None'))
+        keras_to_cpp(groomer.model, arch_dic['config']['layers'], cpp_fn)

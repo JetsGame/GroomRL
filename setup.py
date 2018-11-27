@@ -19,7 +19,8 @@ setup(name= "groomer",
       entry_points = {'console_scripts':
                     [
                         'groomer = groomer.scripts.groomer:main',
-                        'groomer-plot = groomer.scripts.groomer_plot:main'
+                        'groomer-plot = groomer.scripts.groomer_plot:main',
+                        'groomer-cpp = groomer.scripts.groomer_cpp:main'
                     ]},
       package_dir = {'': 'src'},
       packages = find_packages('src'),
