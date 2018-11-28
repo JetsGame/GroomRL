@@ -7,27 +7,23 @@ from gym.utils import seeding
 import heapq as hq
 import fastjet as fj
 import numpy as np
-import json, warnings
+import json, warnings, pprint
 
     
 #----------------------------------------------------------------------
 class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
-    def __init__(self, fn, mass=80.385, mass_width=1.0, nev=-1, target_prec=0.1, reward='cauchy',
-                 low=LundCoordinates.low, high=LundCoordinates.high):
+    def __init__(self, hps, low=LundCoordinates.low, high=LundCoordinates.high):
         """Initialisation of the environment."""
         # read in the events
-        self.fn      = fn
-        self.outfn   = None
-        self.nev     = nev
-        reader       = Jets(fn, nev)
+        reader       = Jets(hps['fn'], hps['nev'])
         self.events  = reader.values()
 
         # set up the mass parameters and initial state
-        self.massgoal      = mass
-        self.target_prec   = target_prec
-        self.mass_width    = mass_width
+        self.massgoal      = hps['mass']
+        self.target_prec   = hps['target_prec']
+        self.mass_width    = hps['width']
         self.root          = None
         # self.event_index   = -1
 
@@ -39,34 +35,51 @@ class GroomEnv(gym.Env):
         self.seed()
         self.viewer = None
 
-        # set the reward function
-        if reward=='cauchy':
+        # set the reward functions
+        if hps['reward']=='cauchy':
             self.__reward=self.__reward_Cauchy
-        elif reward=='gaussian':
+        elif hps['reward']=='gaussian':
             self.__reward=self.__reward_Gaussian
-        elif reward=='exponential':
+        elif hps['reward']=='exponential':
             self.__reward=self.__reward_Exponential
-        elif reward=='inverse':
+        elif hps['reward']=='inverse':
             self.__reward=self.__reward_Inverse
         else:
             raise ValueError('Invalid reward: %s'%reward)
-        # set variables needed for the SD reward
-        self.alpha1 = 0.5
+        if hps['SD_groom']=='exp_add':
+            self.__reward_Groom=self.__reward_Exp_add
+        elif hps['SD_groom']=='exp_mult':
+            self.__reward_Groom=self.__reward_Exp_mult
+        else:
+            raise valueError('Invalid SD_groom: %s'%hps['SD_groom'])
+        if hps['SD_keep']=='exp_add':
+            self.__reward_Keep=self.__reward_Exp_add
+        elif hps['SD_keep']=='exp_mult':
+            self.__reward_Keep=self.__reward_Exp_mult
+        else:
+            raise valueError('Invalid SD_keep: %s'%hps['SD_keep'])
+        self.alpha1  = hps['alpha1']
+        self.alpha2  = hps['alpha2']
+        self.SDnorm  = hps['SD_norm']
+        self.lnzRef1 = hps['lnzRef1']
+        self.lnzRef2 = hps['lnzRef2']
+        
+        # # set variables needed for the SD reward
+        # self.alpha1 = 0.5
         # self.alpha2 = 0.4
-        # for alternative implementation
-        #self.alpha1 = 1.0
-        self.alpha2 = 0.1
-        self.SDnorm = 0.05
-        # lnzRef is the reference value below which radiation is
-        # considered soft and to be groomed
-        self.lnzRef1 = -4
+        # # for alternative implementation
+        # self.alpha1 = 1.0
+        # self.alpha2 = 0.1
+        # self.SDnorm = 0.05
+        # # lnzRef is the reference value below which radiation is
+        # # considered soft and to be groomed
+        # self.lnzRef1 = -4
         # self.lnzRef2 = -6
         # for alternative implementation
         # self.lnzRef1 = -8
-        self.lnzRef2 = -8
+        # self.lnzRef2 = -8
         
-        self.description= '%s with file=%s, target mass=%.3f, width=%.3f, using %s reward.'\
-            % (self.__class__.__name__,fn,mass, mass_width, reward)
+        self.description= '%s with\n%s' % (self.__class__.__name__,pprint.pformat(hps))
         print('Setting up %s' % self.description)
 
     #---------------------------------------------------------------------- 
@@ -118,7 +131,15 @@ class GroomEnv(gym.Env):
     def __reward_Inverse(self, x):
         """An inverse reward function."""
         return min(1.0, 1.0/(x + 0.5))
-    
+
+    def __reward_Exp_add(self, lnDelta, lnz, alpha, lnzRef):
+        """Exponential of addition of lnDelta and lnz."""
+        return math.exp(alpha*lnDelta + alpha*(lnzRef - lnz))
+
+    def __reward_Exp_mult(self, lnDelta, lnz, alpha, lnzRef):
+        """Exponential of multiplication of lnDelta and lnz."""
+        return math.exp(-alpha*lnDelta*(lnzRef - lnz))
+        
     #---------------------------------------------------------------------- 
     def reward_mass(self,mass):
         """For a given jet mass, return the output of the reward function."""
@@ -132,13 +153,15 @@ class GroomEnv(gym.Env):
         of the reward function.
         """# # 
         if is_groomed:
-            reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
+            reward = min(1.0, self.__reward_Groom(lnDelta, lnz, self.alpha1, self.lnzRef1))
+            # reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
             # alternative implementation
             # reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef1 - lnz)))
         else:
-            #reward = max(0.0, 1.0 - math.exp(self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
+            reward = max(0.0, 1.0 - self.__reward_Keep(lnDelta, lnz, self.alpha2, self.lnzRef2))
+            # reward = max(0.0, 1.0 - math.exp(self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
             # alternative implementation
-            reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
+            # reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
         return self.SDnorm*reward
     
     #---------------------------------------------------------------------- 
@@ -207,12 +230,10 @@ class GroomEnv(gym.Env):
 class GroomEnvSD(GroomEnv):
     """Toy environment which should essentially recreate Recursive Soft Drop. For debugging purposes."""
     #----------------------------------------------------------------------
-    def __init__(self, fn, zcut=0.05, beta=1, mass=80.385, mass_width=1.0,
-                 nev=-1, target_prec=0.1, reward='cauchy',
-                 low=np.array([0.0, 10.0]), high=np.array([1.0, 10.0])):
+    def __init__(self, hps, zcut=0.05, beta=1, low=LundCoordinates.low, high=LundCoordinates.high):
         self.zcut = zcut
         self.beta = beta
-        GroomEnv.__init__(self, fn, mass, mass_width, nev, target_prec, reward, low, high)
+        GroomEnv.__init__(self, hps, low, high)
         
     #---------------------------------------------------------------------- 
     def step(self, action):

@@ -24,7 +24,7 @@ def main():
 
     # loading groomer
     modelwgts_fn = '%s/weights.h5' % folder
-    sample_fn = runcard['groomer_env']['testfn']
+    sample_fn = runcard['testfn']
     model = build_model(runcard['groomer_agent'], (LundCoordinates.dimension,))
     groomer = Groomer(model)
     groomer.load_weights(modelwgts_fn)

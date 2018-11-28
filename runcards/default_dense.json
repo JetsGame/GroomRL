@@ -1,11 +1,18 @@
 {
   "groomer_env": {
     "fn": "../data/constit-long.json.gz",
-    "testfn": "../data/sample_WW_2TeV_CA.json.gz",
-    "cluster": false,
     "mass": 80.385,
     "nev": 50000,
-    "width": 1.0
+    "target_prec": 0.1,
+    "width": 1.0,
+    "reward": "cauchy",
+    "SD_groom": "exp_add",
+    "SD_keep": "exp_mult",
+    "alpha1": 0.5,
+    "alpha2": 0.1,
+    "SD_norm": 0.05,
+    "lnzRef1": -4,
+    "lnzRef2": -8
   },
   "groomer_agent": {
     "learning_rate": 1e-3,
@@ -15,5 +22,6 @@
     "dropout": 0.05,
     "nb_layers": 3,
     "nb_units": 100
-  }
+  },
+  "testfn": "../data/sample_WW_2TeV_CA.json.gz"
 }

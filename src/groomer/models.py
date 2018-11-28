@@ -60,9 +60,7 @@ def build_dqn(hps, input_dim):
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""    
     env_setup = groomer_agent_setup.get('groomer_env')
-    groomer_env = GroomEnv(env_setup['fn'], mass=env_setup['mass'],
-                           mass_width=env_setup['width'], 
-                           nev=env_setup['nev'], target_prec=0.05)
+    groomer_env = GroomEnv(env_setup)
 
     agent_setup = groomer_agent_setup.get('groomer_agent')
     dqn = build_dqn(agent_setup, groomer_env.observation_space.shape)

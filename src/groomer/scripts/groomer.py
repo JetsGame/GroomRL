@@ -109,7 +109,7 @@ def main():
     
     # now use model trained by DQN to groom test sample
     groomer = dqn.groomer()
-    reader = Jets(setup['groomer_env']['testfn'], 10000)
+    reader = Jets(setup['testfn'], 10000)
     events = reader.values()
     groomed_jets = []
     for jet in events:
@@ -123,10 +123,10 @@ def main():
         plotdir='%s/plots' % setup['output']
         makedir(plotdir)
         # generating invmass plot
-        plot_mass(groomer, setup['groomer_env']['testfn'],
-                  mass_ref=setup['groomer_env']['mass'], output_folder=plotdir) 
+        plot_mass(groomer, setup['testfn'], mass_ref=setup['groomer_env']['mass'],
+                  output_folder=plotdir) 
         # generate lund plane plot
-        plot_lund(groomer, setup['groomer_env']['testfn'], output_folder=plotdir)
+        plot_lund(groomer, setup['testfn'], output_folder=plotdir)
 
     # if requested, add cpp output
     if args.cpp:
