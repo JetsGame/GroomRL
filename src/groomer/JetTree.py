@@ -151,7 +151,7 @@ class LundImage:
 
     #----------------------------------------------------------------------
     def fill(self, tree, res):
-        """Fill the res array recursively with the tree declusterings"""
+        """Fill the res array recursively with the tree declusterings of the hard branch."""
         if(tree and tree.lundCoord):
             x = -tree.lundCoord.lnDelta
             y =  tree.lundCoord.lnKt
@@ -159,6 +159,6 @@ class LundImage:
             yind = math.ceil((y - self.ymin)/self.y_pxl_wdth - 1.0)
             if (xind < self.npxlx and yind < self.npxly and min(xind,yind) >= 0):
                 res[xind,yind] += 1
-            self.fill(tree.softer, res)
             self.fill(tree.harder, res)
+            #self.fill(tree.softer, res)
 
