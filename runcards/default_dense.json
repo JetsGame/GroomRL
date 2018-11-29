@@ -1,9 +1,8 @@
 {
   "groomer_env": {
-    "fn": "../data/constit-long.json.gz",
+    "fn": "../data/train/WW_2TeV.json.gz",
     "mass": 80.385,
     "nev": 50000,
-    "target_prec": 0.1,
     "width": 1.0,
     "reward": "cauchy",
     "SD_groom": "exp_add",
@@ -23,5 +22,5 @@
     "nb_layers": 3,
     "nb_units": 100
   },
-  "testfn": "../data/sample_WW_2TeV_CA.json.gz"
+  "testfn": "../data/test/test_WW_2TeV.json.gz"
 }
