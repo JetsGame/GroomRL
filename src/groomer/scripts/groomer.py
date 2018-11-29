@@ -43,7 +43,7 @@ def run_hyperparameter_scan(search_space):
     best_setup['scan'] = False
     return best_setup
 
-
+#----------------------------------------------------------------------
 def load_json(runcard_file):
     """Loads json, execute python expressions, and sets
     scan flags accordingly to the syntax.
@@ -57,7 +57,7 @@ def load_json(runcard_file):
             runcard['scan'] = True
     return runcard
 
-
+#----------------------------------------------------------------------
 def makedir(folder):
     """Create directory."""
     if not os.path.exists(folder):

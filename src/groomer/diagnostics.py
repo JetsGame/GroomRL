@@ -6,8 +6,9 @@ from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
-# printing some stats
+#----------------------------------------------------------------------
 def print_stats(name, data, mass_ref=80.385, output_folder='./'):
+    """Print statistics on the mass distribution."""
     r_plain = np.array(data)-mass_ref
     m = np.median(r_plain)
     a = np.mean(r_plain)
@@ -16,9 +17,9 @@ def print_stats(name, data, mass_ref=80.385, output_folder='./'):
         print('%s:\tmedian-diff %.2f\tavg-diff %.2f\tstd-diff %.2f' % (name, m, a, s),
               file=f)
 
-        
+#----------------------------------------------------------------------
 def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./', zcut=0.05, beta=1.0):
-    """Plot the mass distribution."""
+    """Plot the mass distribution and output some statistics."""
     reader  = Jets(sample_fn,10000)
     rsd = RSD(zcut=zcut, beta=beta)
     events  = reader.values()

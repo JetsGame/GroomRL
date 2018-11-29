@@ -4,17 +4,21 @@ import numpy as np
 from math import log, ceil, floor, cos, sin, pi
 import fastjet as fj
 
-#----------------------------------------------------------------------
+#======================================================================
 class Reader(object):
     """
     Reader for files consisting of a sequence of json objects.
     Any pure string object is considered to be part of a header (even if it appears at the end!)
     """
+
+    #----------------------------------------------------------------------
     def __init__(self, infile, nmax = -1):
+        """Initialize the reader."""
         self.infile = infile
         self.nmax = nmax
         self.reset()
-        
+
+    #----------------------------------------------------------------------
     def reset(self):
         """
         Reset the reader to the start of the file, clear the header and event count.
@@ -28,16 +32,18 @@ class Reader(object):
     def __iter__(self):
         # needed for iteration to work 
         return self
-        
+
+    #----------------------------------------------------------------------
     def __next__(self):
         ev = self.next_event()
         if (ev is None): raise StopIteration
         else           : return ev
 
+    #----------------------------------------------------------------------
     def next(self): return self.__next__()
-        
-    def next_event(self):
 
+    #----------------------------------------------------------------------
+    def next_event(self):
         # we have hit the maximum number of events
         if (self.n == self.nmax):
             print ("# Exiting after having read nmax jet declusterings")
@@ -63,17 +69,19 @@ class Reader(object):
         self.n += 1
         return j
 
-    
+#======================================================================
 class Image(ABC):
     """Image which transforms point-like information into pixelated 2D
     images which can be processed by convolutional neural networks."""
     def __init__(self, infile, nmax):
         self.reader = Reader(infile, nmax)
 
+    #----------------------------------------------------------------------
     @abstractmethod
     def process(self, event):
         pass
-    
+
+    #----------------------------------------------------------------------
     def values(self):
         res = []
         while True:
@@ -84,14 +92,18 @@ class Image(ABC):
                 break
         self.reader.reset()
         return res
-       
+
+#======================================================================
 class Jets(Image):
-    """Read input file with jet constituents and transform into python jets"""
+    """Read input file with jet constituents and transform into python jets."""
+
+    #----------------------------------------------------------------------
     def __init__(self, infile, nmax, pseudojets=True):
         Image.__init__(self, infile, nmax)
         self.jet_def = fj.JetDefinition(fj.cambridge_algorithm, 1000.0)
         self.pseudojets = pseudojets
 
+    #----------------------------------------------------------------------
     def process(self, event):
         constits = []
         if self.pseudojets:
@@ -105,17 +117,21 @@ class Jets(Image):
             for p in event[1:]:
                 constits.append([p['px'],p['py'],p['pz'],p['E']])
             return constits
-        
+
+#======================================================================
 class JetImage(Image):
     """
     Take input file and transforms it into parsable jet image.
     """
+
+    #----------------------------------------------------------------------
     def __init__(self, infile, nmax, npxl, R=1.0):
         Image.__init__(self, infile, nmax)
         self.npxl = npxl
         self.pxl_wdth = 2.0 * R / npxl
         self.R = R
 
+    #----------------------------------------------------------------------
     def process(self, event):
         res = np.zeros((2,self.npxl,self.npxl))
         j = event[0]
@@ -160,11 +176,24 @@ class JetImage(Image):
 
         return res
         
-class LundImageAbs(Image):
+#======================================================================
+class LundImage(Image):
     """
-    Take input file and transforms it into parsable lund image.
+    Class to take input file (or a reader) of jet declusterings in json
+    format, one json entry per line, and transform it into lund images.
+
+    - infile: a filename or a reader
+    - nmax: the maximum number of jets to process
+    - npxl: the number of bins (pixels) in each dimension
+    - xval: the range of x (ln 1/Delta) values
+    - yval: the range of y (ln kt) values
+
+    Once you've created the class, call values() (inherited the abstract
+    base class) and you will get a python list of images (formatted as
+    2d numpy arrays).
     """
-    def __init__(self, infile, nmax, npxl, xval, yval):
+    #----------------------------------------------------------------------
+    def __init__(self, infile, nmax, npxl, xval = [0.0, 7.0], yval = [-3.0, 7.0]):
         Image.__init__(self, infile, nmax)
         self.npxl = npxl
         self.xmin = xval[0]
@@ -172,141 +201,66 @@ class LundImageAbs(Image):
         self.x_pxl_wdth = (xval[1] - xval[0])/npxl
         self.y_pxl_wdth = (yval[1] - yval[0])/npxl
 
+    #----------------------------------------------------------------------
     def process(self, event):
-        res = np.zeros((4,self.npxl,self.npxl))
-        L1norm = 0.0
+        """Process an event and return an image of the primary Lund plane."""
+        res = np.zeros((self.npxl,self.npxl))
 
         for declust in event:
-            x = log(1.0/declust['delta_R'])
-            y = self.ptcoord(declust)
-            varphi = declust['varphi']
+            x = log(1.0/declust['Delta'])
+            y = log(declust['kt'])
+            psi = declust['psi']
             xind = ceil((x - self.xmin)/self.x_pxl_wdth - 1.0)
             yind = ceil((y - self.ymin)/self.y_pxl_wdth - 1.0)
             # print((x - self.xmin)/self.x_pxl_wdth,xind,
             #       (y - self.ymin)/self.y_pxl_wdth,yind,':',
             #       declust['delta_R'],declust['pt2'])
             if (max(xind,yind) < self.npxl and min(xind, yind) >= 0):
-                res[0,xind,yind] += 1
-                if not (abs(res[1,xind,yind]) > 0):
-                    res[1,xind,yind] = 0.5 * (1.0 + cos(varphi))
-                if not (abs(res[2,xind,yind]) > 0):
-                    res[2,xind,yind] = 0.5 * (1.0 + sin(varphi))
-                L1norm += 1.0
-        if L1norm > 0.0:
-            res[0] = res[0]/L1norm
+                res[xind,yind] += 1
         return res
-
-    @abstractmethod
-    def ptcoord(self, declust):
-        pass
-
-class LundImageLnpt(LundImageAbs):
-    def __init__(self, infile, nmax, npxl, xval = [0.0, 9.0], yval = [-5.0, 8.0]):
-        LundImageAbs.__init__(self, infile, nmax, npxl, xval, yval)
     
-    def ptcoord(self, declust):
-        val = declust['pt2'] * declust['delta_R']
-        return log(val)
-    
-class LundImageZrel(LundImageAbs):
-    def __init__(self, infile, nmax, npxl, xval = [0.0, 9.0], yval = [-12.0, 0.0]):
-        LundImageAbs.__init__(self, infile, nmax, npxl, xval, yval)
-    
-    def ptcoord(self, declust):
-        val = declust['pt2'] / (declust['pt1']+declust['pt2'])
-        return log(val * declust['delta_R'])
-    
-class LundImageZabs(LundImageAbs):
-    def __init__(self, infile, nmax, npxl, xval = [0.0, 9.0], yval = [-12.0, 0.0]):
-        LundImageAbs.__init__(self, infile, nmax, npxl, xval, yval)
-    
-    def ptcoord(self, declust):
-        val = declust['z'] * declust['delta_R']
-        return log(val)
+#======================================================================
+class LundDense(Image):
+    """
+    Class to take input file (or a reader) of jet declusterings in json
+    format, one json entry per line, and reduces them to the minimal
+    information needed as an input to LSTM or dense network learning.
 
-class LundImage(object):
-    def __init__(self, infile, nmax, npxl, metric='lnpt'):
-        if metric=='lnpt':
-            self.lund = LundImageLnpt(infile, nmax, npxl)
-        elif metric=='zrel':
-            self.lund = LundImageZrel(infile, nmax, npxl)
-        elif metric=='zabs':
-            self.lund = LundImageZabs(infile, nmax, npxl)
-        else:
-            raise ValueError("LundImage metric must be: lnpt, zrel or zabs")
+    - infile: a filename or a reader
+    - nmax: the maximum number of jets to process
+    - nlen: the size of the output array (for each jet), zero padded
+            if the declustering sequence is shorter; if the declustering
+            sequence is longer, entries beyond nlen are discarded.
 
-    def values(self):
-        return self.lund.values()
-
-class LundDenseAbs(Image):
+    Calling values() returns a python list, each entry of which is a
+    numpy array of dimension (nlen,2). values()[i,:]  =
+    (log(1/Delta),log(kt)) for declustering i.
+    """
+    #----------------------------------------------------------------------
     def __init__(self,infile, nmax, nlen):
         Image.__init__(self, infile, nmax)
-        self.nlen = nlen
+        self.nlen      = nlen
         
+    #----------------------------------------------------------------------
     def process(self, event):
-        res = np.zeros((self.nlen,8))
-
+        """Process an event and return an array of declusterings."""
+        res = np.zeros((self.nlen, 2))
+        # go over the declusterings and fill the res array
+        # with the Lund coordinates
         for i in range(self.nlen):
             if (i >= len(event)):
                 break
-            declust = event[i]
-            x = log(1.0/declust['delta_R'])
-            y = self.ptcoord(declust)
-            varphi = declust['varphi']
-            pt1 = declust['pt1']
-            pt2 = declust['pt2']
-            kt  = declust['kt']
-            z   = declust['z']
-            m   = declust['m']
-            res[i,0] = x
-            res[i,1] = y
-            res[i,2] = varphi
-            res[i,3] = m
-            res[i,4] = pt1
-            res[i,5] = pt2
-            res[i,6] = kt
-            res[i,7] = z
+            res[i,:] = self.fill_declust(event[i])
             
         return res
 
-    @abstractmethod
-    def ptcoord(self, declust):
-        pass
-
-class LundDenseLnpt(LundDenseAbs):
-    def __init__(self, infile, nmax, nlen):
-        LundDenseAbs.__init__(self, infile, nmax, nlen)
-    
-    def ptcoord(self, declust):
-        val = declust['pt2'] * declust['delta_R']
-        return log(val)
-    
-class LundDenseZrel(LundDenseAbs):
-    def __init__(self, infile, nmax, nlen):
-        LundDenseAbs.__init__(self, infile, nmax, nlen)
-    
-    def ptcoord(self, declust):
-        val = declust['pt2'] / (declust['pt1']+declust['pt2'])
-        return log(val * declust['delta_R'])
-    
-class LundDenseZabs(LundDenseAbs):
-    def __init__(self, infile, nmax, nlen):
-        LundDenseAbs.__init__(self, infile, nmax, nlen)
-    
-    def ptcoord(self, declust):
-        val = declust['z'] * declust['delta_R']
-        return log(val)
-
-class LundDense(object):
-    def __init__(self, infile, nmax, nlen, metric='lnpt'):
-        if metric=='lnpt':
-            self.lund = LundDenseLnpt(infile, nmax, nlen)
-        elif metric=='zrel':
-            self.lund = LundDenseZrel(infile, nmax, nlen)
-        elif metric=='zabs':
-            self.lund = LundDenseZabs(infile, nmax, nlen)
-        else:
-            raise ValueError("LundDense metric must be: lnpt, zrel or zabs")
-
-    def values(self):
-        return self.lund.values()
+    #----------------------------------------------------------------------
+    def fill_declust(self,declust):
+        """ 
+        Create an array of size two and fill it with the Lund coordinates
+        (log(1/Delta),log(kt)).  
+        """
+        res = np.zeros(2)
+        res[0] = log(1.0/declust['Delta'])
+        res[1] = log(declust['kt'])
+        return res

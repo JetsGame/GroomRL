@@ -2,7 +2,7 @@ import fastjet as fj
 import numpy as np
 import math
 
-#----------------------------------------------------------------------
+#======================================================================
 class LundCoordinates:
     """
     LundCoordinates takes two subjets associated with a declustering,
@@ -10,6 +10,7 @@ class LundCoordinates:
 
     # number of dimensions for the state() method
     dimension = 2
+    # dimension = 5
     # the lower and upper bounds of the state vector
     low  = np.array([-10.0, -8.0])
     high = np.array([0.0, 0.0])
@@ -36,7 +37,7 @@ class LundCoordinates:
         # return np.array([self.lnz, self.lnDelta, self.lnKt, self.psi, 0.5*math.log(abs(self.msq))])
 
 
-#----------------------------------------------------------------------
+#======================================================================
 class JetTree:
     """JetTree keeps track of the tree structure of a jet declustering."""
 
@@ -64,6 +65,7 @@ class JetTree:
             self.delta2 = j1.squared_distance(j2)
             self.lundCoord = LundCoordinates(j1, j2)
 
+    #-------------------------------------------------------------------------------
     def remove_soft(self):
         """Remove the softer branch of the JetTree node."""
         # start by removing softer parent momentum from the rest of the tree
@@ -121,7 +123,7 @@ class JetTree:
         del self.node
         del self
 
-#----------------------------------------------------------------------
+#======================================================================
 class LundImage:
     """Class to create Lund images from a jet tree."""
 

@@ -1,11 +1,12 @@
-import numpy as np
-import math
-from abc import ABC, abstractmethod
-from rl.policy import GreedyQPolicy
 from groomer.JetTree import JetTree
 from groomer.tools import declusterings, kinematics_node
+import numpy as np
+import math, json
+from abc import ABC, abstractmethod
+from rl.policy import GreedyQPolicy
+from keras.models import model_from_json
 
-#----------------------------------------------------------------------
+#======================================================================
 class AbstractGroomer(ABC):
     """AbstractGroomer class."""
 
@@ -27,12 +28,12 @@ class AbstractGroomer(ABC):
     def _groom(self, tree):
         pass
         
-#----------------------------------------------------------------------
+#======================================================================
 class Groomer(AbstractGroomer):
     """Groomer class that acts on a JetTree using keras model and policy."""
 
     #---------------------------------------------------------------------- 
-    def __init__(self, model, policy=GreedyQPolicy()):
+    def __init__(self, model=None, policy=GreedyQPolicy()):
         """Initialisation of the groomer."""
         self.model = model
         self.policy = policy
@@ -63,6 +64,17 @@ class Groomer(AbstractGroomer):
                 self._groom(tree.softer)
 
     #----------------------------------------------------------------------
+    def load_with_json(self, jsonfile, weightfile):
+        """
+        Load model from a json file with the architecture, and an h5 file with weights.
+        """
+        # read architecture card
+        with open(jsonfile) as f:
+            arch = json.load(f)
+        self.model = model_from_json(arch)
+        self.model.load_weights(weightfile)
+
+    #----------------------------------------------------------------------
     def save(self, filepath, overwrite=False, include_optimizer=True):
         """Save the model to file."""
         self.model.save(filepath, overwrite=overwrite,
@@ -85,7 +97,7 @@ class Groomer(AbstractGroomer):
         self.model.load_weights(filepath)
 
 
-#----------------------------------------------------------------------
+#======================================================================
 class RSD(AbstractGroomer):
     """RSD applies Recursive Soft Drop grooming to a JetTree."""
 
@@ -125,11 +137,12 @@ class RSD(AbstractGroomer):
                 self._groom(tree.softer)
 
 
-#----------------------------------------------------------------------
+#======================================================================
 class DeclustGroomer:
     """
     Class to handle jet grooming on declusterings sequence using an internal 
     keras model and policy."""
+    
     #---------------------------------------------------------------------- 
     def __init__(self, model, policy=GreedyQPolicy()):
         """Initialisation of the groomer."""
@@ -163,20 +176,24 @@ class DeclustGroomer:
         # return four-momentum of groomed jet
         return groomed_jet
 
+    #----------------------------------------------------------------------
     def save(self, filepath, overwrite=False, include_optimizer=True):
         """Save the model to file."""
         self.model.save(filepath, overwrite=overwrite,
                         include_optimizer=include_optimizer)
 
+    #----------------------------------------------------------------------
     def load_model(self, filepath, custom_objects=None, compile=True):
         """Load model from file"""
         self.model = load_model(filepath, custom_objects=custom_objects,
                                 compile=compile)
 
+    #----------------------------------------------------------------------
     def save_weights(self, filepath, overwrite=False):
         """Save the weights of model to file."""
         self.model.save_weights(filepath, overwrite=overwrite)
 
+    #----------------------------------------------------------------------
     def load_weights(self, filepath):
         """Load weights of model from file"""
         self.model.load_weights(filepath)

@@ -1,4 +1,4 @@
-from groomer.GroomEnv import GroomEnv
+from groomer.GroomEnv import GroomEnv, GroomEnvDual
 import numpy as np
 
 from groomer.DQNAgentGroom import DQNAgentGroom
@@ -15,6 +15,7 @@ from time import time
 
 import pprint, json
 
+#----------------------------------------------------------------------
 def build_model(hps, input_dim):
     """Construct the underlying model used by the DQN."""
     model = Sequential()
@@ -36,7 +37,8 @@ def build_model(hps, input_dim):
     print(model.summary())
     return model
 
-#---------------------------------------------------------------------- 
+#----------------------------------------------------------------------
+# inspire from:
 # https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
 def build_dqn(hps, input_dim):
     """Create a DQN agent to be used on lund inputs."""
@@ -60,7 +62,11 @@ def build_dqn(hps, input_dim):
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""    
     env_setup = groomer_agent_setup.get('groomer_env')
-    groomer_env = GroomEnv(env_setup)
+    if "dual_groomer_env" in groomer_agent_setup and \
+       groomer_agent_setup["dual_groomer_env"]:
+        groomer_env = GroomEnvDual(env_setup)
+    else:
+        groomer_env = GroomEnv(env_setup)
 
     agent_setup = groomer_agent_setup.get('groomer_agent')
     dqn = build_dqn(agent_setup, groomer_env.observation_space.shape)

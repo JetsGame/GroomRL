@@ -1,3 +1,6 @@
+"""
+    groomer_plot.py: the entry point for groomer-plot.
+"""
 from groomer.Groomer import Groomer
 from groomer.JetTree import *
 from groomer.diagnostics import plot_mass, plot_lund
@@ -23,11 +26,12 @@ def main():
         runcard = json.load(f)
 
     # loading groomer
+    groomer = Groomer()
     modelwgts_fn = '%s/weights.h5' % folder
+    modeljson_fn = '%s/model.json' % folder
+    groomer.load_with_json(modeljson_fn, modelwgts_fn)
+
     sample_fn = runcard['testfn']
-    model = build_model(runcard['groomer_agent'], (LundCoordinates.dimension,))
-    groomer = Groomer(model)
-    groomer.load_weights(modelwgts_fn)
 
     # generating invmass plot
     plot_mass(groomer, sample_fn, mass_ref=runcard['groomer_env']['mass'],

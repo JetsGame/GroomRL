@@ -10,26 +10,42 @@ import numpy as np
 import json, warnings, pprint
 
     
-#----------------------------------------------------------------------
+#======================================================================
 class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
     def __init__(self, hps, low=LundCoordinates.low, high=LundCoordinates.high):
-        """Initialisation of the environment."""
+        """
+        Initialisation of the environment using a dictionary with hyperparameters 
+        and a lower and upper bound for the observable state.
+
+        The hps dictionary should have the following entries:
+        - fn: filename of data set
+        - nev: number of events (-1 for all)
+        - mass: target mass reference
+        - mass_width: width to use in reward function
+        - reward: type of reward function (cauchy, gaussian, ...)
+        - SD_groom: type of SD reward for groomed subjets (exp_add or exp_mult)
+        - SD_keep: type of SD reward for kept subjets (exp_add or exp_mult)
+        - alpha1: parameter for groomed SD reward
+        - alpha2: parameter for kept SD reward
+        - SDnorm: normalisation factor for SD reward
+        - lnzRef1: parameter for groomed SD reward
+        - lnzRef2: parameter for kept SD reward
+        """
         # read in the events
         reader       = Jets(hps['fn'], hps['nev'])
         self.events  = reader.values()
 
         # set up the mass parameters and initial state
         self.massgoal      = hps['mass']
-        self.target_prec   = hps['target_prec']
         self.mass_width    = hps['width']
         self.root          = None
         # self.event_index   = -1
 
         # set up observation and action space
         self.action_space      = spaces.Discrete(2)
-        self.observation_space = spaces.Box(low, high)
+        self.observation_space = spaces.Box(low, high, dtype=np.float32)
 
         # set up some internal parameters
         self.seed()
@@ -63,6 +79,9 @@ class GroomEnv(gym.Env):
         self.SDnorm  = hps['SD_norm']
         self.lnzRef1 = hps['lnzRef1']
         self.lnzRef2 = hps['lnzRef2']
+        # the separate reward and reward_sig functions are required for
+        # the GroomEnvDual class
+        self.reward  = self.reward_sig
         
         # # set variables needed for the SD reward
         # self.alpha1 = 0.5
@@ -132,10 +151,12 @@ class GroomEnv(gym.Env):
         """An inverse reward function."""
         return min(1.0, 1.0/(x + 0.5))
 
+    #----------------------------------------------------------------------
     def __reward_Exp_add(self, lnDelta, lnz, alpha, lnzRef):
         """Exponential of addition of lnDelta and lnz."""
         return math.exp(alpha*lnDelta + alpha*(lnzRef - lnz))
 
+    #----------------------------------------------------------------------
     def __reward_Exp_mult(self, lnDelta, lnz, alpha, lnzRef):
         """Exponential of multiplication of lnDelta and lnz."""
         return math.exp(-alpha*lnDelta*(lnzRef - lnz))
@@ -165,7 +186,7 @@ class GroomEnv(gym.Env):
         return self.SDnorm*reward
     
     #---------------------------------------------------------------------- 
-    def reward(self, mass, lnz, lnDelta, is_groomed):
+    def reward_sig(self, mass, lnz, lnDelta, is_groomed):
         """Full reward function."""
         return self.reward_mass(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
 
@@ -225,7 +246,55 @@ class GroomEnv(gym.Env):
     def close(self):
         if self.viewer: self.viewer.close()
 
+ 
+#======================================================================
+class GroomEnvDual(GroomEnv):
+    """Class defining a gym environment for the groomer with both signal and background events."""
+
+    #---------------------------------------------------------------------- 
+    def __init__(self, hps, *args, **kwargs):
+        """
+        Initialisation of the environment. The dictionary for GroomEnvDual requires
+        two additional entries:
+        - fn_bkg: file with background events
+        - width_bkg: parameter for the background mass reward
+        """
+        super(GroomEnvDual, self).__init__(hps, *args, **kwargs)
+        reader_bkg      = Jets(hps['fn_bkg'], hps['nev'])
+        self.events_bkg = reader_bkg.values()
+        self.mass_width_bkg = hps['width_bkg']
+        self.reward=self.reward_total
+
+    #----------------------------------------------------------------------
+    def get_random_tree(self):
+        """Get a random jet tree from either the signal or the background list of events."""
+        if random.getrandbits(1): 
+            self.signal = True
+            event = random.choice(self.events)
+        else:
+            self.signal = False
+            event = random.choice(self.events_bkg)
+        return JetTree(event)
+
+    #----------------------------------------------------------------------
+    def reward_mass_bkg(self, mass):
+        """Reward for current jet mass, for background events."""
+        x = abs(mass/self.mass_width_bkg)
+        return 1.0/(math.pi*(1.0 + (x*x)))
+    
+    #----------------------------------------------------------------------
+    def reward_bkg(self, mass, lnz, lnDelta, is_groomed):
+        """Reward function for background events."""
+        return self.reward_mass_bkg(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
         
+    #----------------------------------------------------------------------
+    def reward_total(self, mass, lnz, lnDelta, is_groomed):
+        """Full reward function."""
+        if self.signal:
+            return self.reward_sig(mass, lnz, lnDelta, is_groomed)
+        else:
+            return self.reward_bkg(mass, lnz, lnDelta, is_groomed)
+
 #======================================================================
 class GroomEnvSD(GroomEnv):
     """Toy environment which should essentially recreate Recursive Soft Drop. For debugging purposes."""

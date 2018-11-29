@@ -1,3 +1,6 @@
+"""
+    groomer_cpp.py: the entry point for groomer-cpp.
+"""
 from groomer.Groomer import Groomer, RSD
 from groomer.JetTree import *
 from groomer.observables import *
