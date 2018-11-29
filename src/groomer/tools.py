@@ -115,3 +115,10 @@ def kinematics_node(declust):
 
     return np.array([lnz,lnDelta])
 
+
+def get_window_width(masses, lower_frac=20, upper_frac=80):
+    """Returns"""
+    lower = np.nanpercentile(masses, lower_frac)
+    upper = np.nanpercentile(masses, upper_frac)
+    median = np.median(masses[(masses > lower) & (masses < upper)])
+    return lower, upper, median

@@ -1,6 +1,8 @@
 from groomer.GroomEnv import GroomEnv, GroomEnvDual
 import numpy as np
 
+from groomer.observables import mass
+from groomer.tools import get_window_width
 from groomer.DQNAgentGroom import DQNAgentGroom
 from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
@@ -45,7 +47,7 @@ def build_dqn(hps, input_dim):
 
     print('[+] Constructing DQN agent, model setup:')
     pprint.pprint(hps)
-    
+
     # set up the DQN agent
     model = build_model(hps, input_dim)
     memory = SequentialMemory(limit=500000, window_length=1)
@@ -54,13 +56,13 @@ def build_dqn(hps, input_dim):
                           memory=memory, nb_steps_warmup=500,
                           target_model_update=1e-2, policy=policy)
     agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
-    
+
     return agent
 
 
-#---------------------------------------------------------------------- 
+#----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
-    """Run a test model"""    
+    """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
     if "dual_groomer_env" in groomer_agent_setup and \
        groomer_agent_setup["dual_groomer_env"]:
@@ -70,7 +72,7 @@ def build_and_train_model(groomer_agent_setup):
 
     agent_setup = groomer_agent_setup.get('groomer_agent')
     dqn = build_dqn(agent_setup, groomer_env.observation_space.shape)
- 
+
     logdir = '%s/logs/{}'.format(time()) % groomer_agent_setup['output']
     print(f'[+] Constructing tensorboard log in {logdir}')
     tensorboard = TensorBoard(log_dir=logdir)
@@ -83,18 +85,28 @@ def build_and_train_model(groomer_agent_setup):
     weight_file = '%s/weights.h5' % groomer_agent_setup['output']
     print(f'[+] Saving weights to {weight_file}')
     dqn.save_weights(weight_file, overwrite=True)
-    
+
     # save the model architecture in json
     model_file = '%s/model.json' % groomer_agent_setup['output']
-    print(f'[+] Saving model to {model_file}')    
+    print(f'[+] Saving model to {model_file}')
     with open(model_file, 'w') as outfile:
         json.dump(dqn.model.to_json(), outfile)
 
-    if groomer_agent_setup['scan']:        
-        # compute nominal reward after training
-        loss = np.median(r.history['episode_reward'])
-        print(f'[+] MAX MEDIAN REWARD: {loss}')
-        res = {'loss': -loss, 'status': STATUS_OK}
+    # compute nominal reward after training
+    median_reward = np.median(r.history['episode_reward'])
+    print(f'[+] Median reward: {median_reward}')
+
+    if groomer_agent_setup['scan']:
+        # compute a metric for training set (TODO: change to validation)
+        groomed_jets = []
+        for jet in groomer_env.events:
+            groomed_jets.append(dqn.groomer()(jet))
+        masses = np.array(mass(groomed_jets))
+        lower, upper, median = get_window_width(masses)
+        loss = abs(upper-lower)/5 + abs(median-env_setup['mass'])
+        print(f'Loss function for scan = {loss}')
+        res = {'loss': loss, 'reward': median_reward, 'window': (lower,upper,median),
+               'status': STATUS_OK}
     else:
-        res = dqn       
+        res = dqn
     return res
