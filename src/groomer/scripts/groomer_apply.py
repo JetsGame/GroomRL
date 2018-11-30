@@ -1,5 +1,5 @@
 """
-    groomer_plot.py: the entry point for groomer-plot.
+    groomer_apply.py: the entry point for groomer-apply.
 """
 from groomer.Groomer import Groomer
 from groomer.JetTree import *
@@ -14,12 +14,14 @@ def main():
     """Starting point"""
     parser = argparse.ArgumentParser(description='Diagnostics for groomer.')
     parser.add_argument('fit_folder', action='store', help='The fit folder')
+    parser.add_argument('data', action='store', help='The data file')
     parser.add_argument('--nev', '-n', type=float, default=10000, help='Number of events.')
     args = parser.parse_args()
 
     # building output folder
     folder = args.fit_folder.strip('/')
-    output = '%s/plots' % folder
+    fn = os.path.splitext(os.path.basename(args.data))[0]
+    output = '%s/%s' % (folder,fn)
     os.mkdir(output)
 
     # loading json card
@@ -32,15 +34,8 @@ def main():
     groomer.load_with_json(modeljson_fn, modelwgts_fn)
 
     # generating invmass plot
-    plot_mass(groomer, runcard['testfn'], mass_ref=runcard['groomer_env']['mass'],
+    plot_mass(groomer, args.data, mass_ref=runcard['groomer_env']['mass'],
               output_folder=output, nev=args.nev)
 
     # generate lund plane plot
-    plot_lund(groomer, runcard['testfn'], output_folder=output, nev=args.nev)
-
-    if 'testfn_bkg' in runcard:
-        # generating plots for the background
-        plot_mass(groomer, runcard['testfn_bkg'], mass_ref=runcard['groomer_env']['mass'],
-                  output_folder=output, nev=args.nev, background=True)
-        plot_lund(groomer, runcard['testfn_bkg'], output_folder=output,
-                  nev=args.nev, background=True)
+    plot_lund(groomer, args.data, output_folder=output, nev=args.nev)

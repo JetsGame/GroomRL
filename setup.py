@@ -20,7 +20,8 @@ setup(name= "groomer",
                     [
                         'groomer = groomer.scripts.groomer:main',
                         'groomer-plot = groomer.scripts.groomer_plot:main',
-                        'groomer-cpp = groomer.scripts.groomer_cpp:main'
+                        'groomer-cpp = groomer.scripts.groomer_cpp:main',
+                        'groomer-apply = groomer.scripts.groomer_apply:main'
                     ]},
       package_dir = {'': 'src'},
       packages = find_packages('src'),

@@ -2,7 +2,7 @@
     groomer.py: the entry point for the groomer.
 """
 from groomer.read_clustseq_json import Jets
-from groomer.models import build_and_train_model
+from groomer.models import build_and_train_model, load_runcard
 from groomer.diagnostics import plot_mass, plot_lund
 from groomer.keras_to_cpp import keras_to_cpp, check_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
@@ -48,8 +48,7 @@ def load_json(runcard_file):
     """Loads json, execute python expressions, and sets
     scan flags accordingly to the syntax.
     """
-    with open(runcard_file, 'r') as f:
-        runcard = json.load(f)
+    runcard = load_runcard(runcard_file)
     runcard['scan'] = False
     for key, value in runcard.get('groomer_agent').items():
         if 'hp' in str(value):
@@ -75,6 +74,7 @@ def main():
     parser.add_argument('--output', '-o', type=str, default=None, help='The output folder.')
     parser.add_argument('--plot',action='store_true',dest='plot')
     parser.add_argument('--cpp',action='store_true',dest='cpp')
+    parser.add_argument('--nev', '-n', type=float, default=10000, help='Number of events.')
     args = parser.parse_args()
 
     # load json
@@ -124,15 +124,16 @@ def main():
         makedir(plotdir)
         # generating invmass plot
         plot_mass(groomer, setup['testfn'], mass_ref=setup['groomer_env']['mass'],
-                  output_folder=plotdir) 
+                  output_folder=plotdir, nev=args.nev) 
         # generate lund plane plot
-        plot_lund(groomer, setup['testfn'], output_folder=plotdir)
+        plot_lund(groomer, setup['testfn'], output_folder=plotdir, nev=args.nev)
 
         if 'testfn_bkg' in setup:
             # generating plots for the background
             plot_mass(groomer, setup['testfn_bkg'], mass_ref=setup['groomer_env']['mass'],
-                      output_folder=plotdir, background=True)
-            plot_lund(groomer, setup['testfn_bkg'], output_folder=plotdir, background=True)
+                      output_folder=plotdir, nev=args.nev, background=True)
+            plot_lund(groomer, setup['testfn_bkg'], output_folder=plotdir,
+                      nev=args.nev, background=True)
             
 
     # if requested, add cpp output

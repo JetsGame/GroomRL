@@ -6,7 +6,6 @@ from groomer.JetTree import *
 from groomer.observables import *
 from groomer.read_clustseq_json import Jets
 from groomer.keras_to_cpp import keras_to_cpp, check_model
-from groomer.models import build_model
 from keras.models import model_from_json
 import numpy as np
 import pickle, json
@@ -26,8 +25,7 @@ def main():
     os.mkdir(output)
 
     # loading json card
-    with open('%s/runcard.json' % folder) as f:
-        runcard = json.load(f)
+    runcard = load_runcard('%s/runcard.json' % folder)
         
     # read architecture card
     with open('%s/model.json' % folder) as f:

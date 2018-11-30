@@ -60,13 +60,21 @@ def build_dqn(hps, input_dim):
 
     return agent
 
-
+#----------------------------------------------------------------------
+def load_runcard(runcard):
+    """Read in a runcard json file and set up dimensions correctly."""
+    with open(runcard,'r') as f:
+        res = json.load(f)
+    # if there is a state_dim variable, set up LundCoordinates accordingly
+    env_setup = res.get("groomer_env")
+    if "state_dim" in env_setup:
+        LundCoordinates.change_dimension(env_setup["state_dim"])
+    return res
+    
 #----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
-    if "state_dim" in env_setup:
-        LundCoordinates.change_dimension(env_setup["state_dim"])
     if "dual_groomer_env" in groomer_agent_setup and \
        groomer_agent_setup["dual_groomer_env"]:
         groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,

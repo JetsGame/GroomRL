@@ -19,10 +19,10 @@ def print_stats(name, data, mass_ref=80.385, output_folder='./', background=Fals
               file=f)
 
 #----------------------------------------------------------------------
-def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./',
+def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./', nev=-1,
               background=False, zcut=0.05, beta=1.0):
     """Plot the mass distribution and output some statistics."""
-    reader  = Jets(sample_fn,10000)
+    reader  = Jets(sample_fn, nev)
     rsd = RSD(zcut=zcut, beta=beta)
     events  = reader.values()
     jets    = []
@@ -58,12 +58,13 @@ def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./',
     print_stats('mdqn    ', mdqn  , mass_ref=mass_ref, output_folder=output_folder, background=background)
 
 #----------------------------------------------------------------------
-def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./", background=False):
+def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./",
+              nev=-1, background=False):
     """Plot the lund plane."""
     # set up the reader and get array from file
     xval   = [0.0, 7.0]
     yval   = [-3.0, 7.0]
-    reader  = Jets(sample_fn,10000)
+    reader  = Jets(sample_fn, nev)
     rsd = RSD(zcut=zcut, beta=beta)
     lundImg = LundImage(xval, yval)
     events  = reader.values()
