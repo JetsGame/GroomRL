@@ -10,19 +10,19 @@ class LundCoordinates:
 
     # number of dimensions for the state() method
     dimension = 2
-    # dimension = 5
     # the lower and upper bounds of the state vector
     low  = np.array([-10.0, -8.0])
     high = np.array([0.0, 0.0])
-    # low  = np.array([-10.0, -8.0, -4.0, -1.5708, 0.0])
-    # high = np.array([0.0, 0.0, 8.0, 1.5708, 8.0])
+    # internal array for resizing
+    __low_full  = np.array([-10.0, -8.0, -4.0, -1.5708, 0.0])
+    __high_full = np.array([0.0, 0.0, 8.0, 1.5708, 8.0])
     
     #----------------------------------------------------------------------
     def __init__(self, j1, j2):
         """Define a number of variables associated with the declustering."""
         delta = j1.delta_R(j2)
         z     = j2.pt()/(j1.pt() + j2.pt())
-        self.msq     = (j1 + j2).m2()
+        self.lnm     = 0.5*math.log(abs((j1 + j2).m2()))
         self.lnKt    = math.log(j2.pt()*delta)
         self.lnz     = math.log(z)
         self.lnDelta = math.log(delta)
@@ -30,11 +30,18 @@ class LundCoordinates:
         self.psi     = math.atan((j1.rap() - j2.rap())/(j1.phi() - j2.phi()))
 
     #----------------------------------------------------------------------
+    @staticmethod
+    def change_dimension(n):
+        LundCoordinates.dimension=n
+        LundCoordinates.low  = LundCoordinates.__low_full[:n]
+        LundCoordinates.high = LundCoordinates.__high_full[:n]
+        
+    #----------------------------------------------------------------------
     def state(self):
         # WARNING: For consistency with other parts of the code,
         #          lnz and lnDelta need to be the first two components
-        return np.array([self.lnz, self.lnDelta])
-        # return np.array([self.lnz, self.lnDelta, self.lnKt, self.psi, 0.5*math.log(abs(self.msq))])
+        return np.array([self.lnz, self.lnDelta, self.psi,
+                         self.lnm, self.lnKt][:LundCoordinates.dimension])
 
 
 #======================================================================

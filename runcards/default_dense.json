@@ -1,5 +1,6 @@
 {
   "groomer_env": {
+    "state_dim": 2,
     "fn": "../data/train/WW_2TeV.json.gz",
     "mass": 80.385,
     "nev": 50000,

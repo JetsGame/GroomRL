@@ -4,6 +4,7 @@ import numpy as np
 from groomer.observables import mass
 from groomer.tools import get_window_width
 from groomer.DQNAgentGroom import DQNAgentGroom
+from groomer.JetTree import LundCoordinates
 from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 
@@ -64,11 +65,15 @@ def build_dqn(hps, input_dim):
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
+    if "state_dim" in env_setup:
+        LundCoordinates.change_dimension(env_setup["state_dim"])
     if "dual_groomer_env" in groomer_agent_setup and \
        groomer_agent_setup["dual_groomer_env"]:
-        groomer_env = GroomEnvDual(env_setup)
+        groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,
+                                   high=LundCoordinates.high)
     else:
-        groomer_env = GroomEnv(env_setup)
+        groomer_env = GroomEnv(env_setup, low=LundCoordinates.low,
+                               high=LundCoordinates.high)
 
     agent_setup = groomer_agent_setup.get('groomer_agent')
     dqn = build_dqn(agent_setup, groomer_env.observation_space.shape)

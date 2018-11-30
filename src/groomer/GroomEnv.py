@@ -14,7 +14,7 @@ import json, warnings, pprint
 class GroomEnv(gym.Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
-    def __init__(self, hps, low=LundCoordinates.low, high=LundCoordinates.high):
+    def __init__(self, hps, low, high):
         """
         Initialisation of the environment using a dictionary with hyperparameters 
         and a lower and upper bound for the observable state.
@@ -46,7 +46,7 @@ class GroomEnv(gym.Env):
         # set up observation and action space
         self.action_space      = spaces.Discrete(2)
         self.observation_space = spaces.Box(low, high, dtype=np.float32)
-
+        print('shape:',self.observation_space.shape)
         # set up some internal parameters
         self.seed()
         self.viewer = None
