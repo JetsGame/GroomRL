@@ -128,6 +128,13 @@ def main():
         # generate lund plane plot
         plot_lund(groomer, setup['testfn'], output_folder=plotdir)
 
+        if 'testfn_bkg' in setup:
+            # generating plots for the background
+            plot_mass(groomer, setup['testfn_bkg'], mass_ref=setup['groomer_env']['mass'],
+                      output_folder=plotdir, background=True)
+            plot_lund(groomer, setup['testfn_bkg'], output_folder=plotdir, background=True)
+            
+
     # if requested, add cpp output
     if args.cpp:
         cppdir = '%s/cpp' % setup['output']

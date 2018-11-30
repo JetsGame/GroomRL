@@ -21,5 +21,6 @@
     "dropout": 0.05,
     "nb_units": 64
   },
-  "testfn": "../data/test/test_WW_2TeV.json.gz"
+  "testfn": "../data/test/test_WW_2TeV.json.gz",
+  "testfn_bkg": "../data/test/test_QCD_2TeV.json.gz"
 }

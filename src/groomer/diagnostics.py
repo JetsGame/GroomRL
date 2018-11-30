@@ -7,18 +7,20 @@ from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 
 #----------------------------------------------------------------------
-def print_stats(name, data, mass_ref=80.385, output_folder='./'):
+def print_stats(name, data, mass_ref=80.385, output_folder='./', background=False):
     """Print statistics on the mass distribution."""
     r_plain = np.array(data)-mass_ref
     m = np.median(r_plain)
     a = np.mean(r_plain)
     s = np.std(r_plain)
-    with open('%s/diagnostics.txt'%output_folder,'a+') as f:
+    fn = '%s/diagnostics%s.txt' % (output_folder, '' if not background else '_bkg')
+    with open(fn,'a+') as f:
         print('%s:\tmedian-diff %.2f\tavg-diff %.2f\tstd-diff %.2f' % (name, m, a, s),
               file=f)
 
 #----------------------------------------------------------------------
-def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./', zcut=0.05, beta=1.0):
+def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./',
+              background=False, zcut=0.05, beta=1.0):
     """Plot the mass distribution and output some statistics."""
     reader  = Jets(sample_fn,10000)
     rsd = RSD(zcut=zcut, beta=beta)
@@ -48,14 +50,15 @@ def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./', zcut=0.05
 
     plt.xlim((0,150))
     plt.legend()
-    plt.savefig('%s/mass.pdf' % output_folder, bbox_inches='tight')
+    fn = '%s/mass%s.pdf' % (output_folder, '' if not background else '_bkg')
+    plt.savefig(fn, bbox_inches='tight')
         
-    print_stats('plain   ', mplain, mass_ref=mass_ref, output_folder=output_folder)
-    print_stats('mrsd    ', mrsd  , mass_ref=mass_ref, output_folder=output_folder)
-    print_stats('mdqn    ', mdqn  , mass_ref=mass_ref, output_folder=output_folder)
+    print_stats('plain   ', mplain, mass_ref=mass_ref, output_folder=output_folder, background=background)
+    print_stats('mrsd    ', mrsd  , mass_ref=mass_ref, output_folder=output_folder, background=background)
+    print_stats('mdqn    ', mdqn  , mass_ref=mass_ref, output_folder=output_folder, background=background)
 
 #----------------------------------------------------------------------
-def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./"):
+def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./", background=False):
     """Plot the lund plane."""
     # set up the reader and get array from file
     xval   = [0.0, 7.0]
@@ -79,7 +82,8 @@ def plot_lund(groomer, sample_fn, zcut=0.05, beta=1.0, output_folder="./"):
     avg_rsd     = np.average(rsd_imgs, axis=0)
 
     # Plot the result
-    with PdfPages('%s/lund.pdf' % output_folder) as pdf:
+    fn = '%s/lund%s.pdf' % (output_folder, '' if not background else '_bkg')
+    with PdfPages(fn) as pdf:
 
         plt.rcParams.update({'font.size': 20})
         plt.figure(figsize=(12, 9))

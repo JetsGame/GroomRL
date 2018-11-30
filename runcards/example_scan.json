@@ -2,7 +2,7 @@
   "groomer_env": {
     "fn": "../data/train/WW_2TeV.json.gz",
     "mass": 80.385,
-    "nev": 100,
+    "nev": 50000,
     "width": 1.0,
     "reward": "cauchy",
     "SD_groom": "exp_add",
@@ -16,7 +16,7 @@
   "groomer_agent": {
     "learning_rate": "hp.loguniform('learning_rate', -10, 0)",
     "nb_actions": 2,
-    "nstep": "hp.choice('nstep', [100, 1000])",
+    "nstep": "hp.choice('nstep', [1000, 10000])",
     "architecture": "hp.choice('architecture', ['Dense', 'LSTM'])",
     "dropout": 0.05,
     "nb_layers": 3,
@@ -27,5 +27,6 @@
     "url": "mongo://localhost:1234/groomer/jobs",
     "exp_key": "exp1"
   },
-  "testfn": "../data/test/test_WW_2TeV.json.gz"
+  "testfn": "../data/test/test_WW_2TeV.json.gz",
+  "testfn_bkg": "../data/test/test_QCD_2TeV.json.gz"
 }
