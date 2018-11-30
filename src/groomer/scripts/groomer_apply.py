@@ -20,7 +20,7 @@ def main():
 
     # building output folder
     folder = args.fit_folder.strip('/')
-    fn = os.path.splitext(os.path.basename(args.data))[0]
+    fn = os.path.basename(args.data).split(os.extsep)[0]
     output = '%s/%s' % (folder,fn)
     os.mkdir(output)
 
