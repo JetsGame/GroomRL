@@ -109,7 +109,7 @@ def main():
     
     # now use model trained by DQN to groom test sample
     groomer = dqn.groomer()
-    reader = Jets(setup['testfn'], 10000)
+    reader = Jets(setup['test']['fn'], args.nev)
     events = reader.values()
     groomed_jets = []
     for jet in events:
@@ -123,16 +123,16 @@ def main():
         plotdir='%s/plots' % setup['output']
         makedir(plotdir)
         # generating invmass plot
-        plot_mass(groomer, setup['testfn'], mass_ref=setup['groomer_env']['mass'],
+        plot_mass(groomer, setup['test']['fn'], mass_ref=setup['groomer_env']['mass'],
                   output_folder=plotdir, nev=args.nev) 
         # generate lund plane plot
-        plot_lund(groomer, setup['testfn'], output_folder=plotdir, nev=args.nev)
+        plot_lund(groomer, setup['test']['fn'], output_folder=plotdir, nev=args.nev)
 
-        if 'testfn_bkg' in setup:
+        if 'fn_bkg' in setup['test']:
             # generating plots for the background
-            plot_mass(groomer, setup['testfn_bkg'], mass_ref=setup['groomer_env']['mass'],
+            plot_mass(groomer, setup['test']['fn_bkg'], mass_ref=setup['groomer_env']['mass'],
                       output_folder=plotdir, nev=args.nev, background=True)
-            plot_lund(groomer, setup['testfn_bkg'], output_folder=plotdir,
+            plot_lund(groomer, setup['test']['fn_bkg'], output_folder=plotdir,
                       nev=args.nev, background=True)
             
 

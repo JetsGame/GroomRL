@@ -3,7 +3,7 @@ Runcard setup
 
 Parameters are defined through a runcard which is stored in json format.
 
-It is made of a dictionary of up to five entries
+It is made of a dictionary with several entries
 
 ## groomer_env
 The groomer_env entry is itself a dictionary containing all the
@@ -23,11 +23,14 @@ environment parameters for the groomer.
 - state_dim: dimensionality of the observable state
 - fn_bkg: data set used for the background (for GroomEnvDual)
 - width_bkg: parameter used for background reward
+- dual_groomer_env: use GroomEnvDual instead of GroomEnv (true or false)
 
 ## groomer_agent
 The groomer_agent contains all the parameters for the DQN and NN
 - learning_rate: learning rate for Adam
-- nb_actions: number of actions (usually 2)
+- policy: policy used (boltzmann or epsgreedyq)
+- enable_dueling_network: enable dueling network option (true or false)
+- enable_double_dqn: enable double dqn option (true or false)
 - nstep: number of steps in the fit
 - architecture: model architecture (Dense, LSTM)
 - dropout: value for dropout layer (ignored if 0)
@@ -40,8 +43,7 @@ The parameters for cluster runs
 - url: url for MongoTrials
 - exp_key: exp_key parameter
 
-## testfn
-Sample test file for diagnostic plots
-
-## testfn_bkg
-Sample test file of background events for diagnostic plots
+## test
+Contains information about the test data
+- fn: test file for diagnostic plots
+- fn_bkg: test file of background events for diagnostic plots

@@ -1,21 +1,25 @@
 {
     "groomer_env": {
+	"state_dim": 2,
 	"fn": "../data/train/WW_2TeV.json.gz",
 	"mass": 80.385,
 	"nev": 50000,
 	"width": 1.0,
 	"reward": "cauchy",
-	"SD_groom": "exp_add",
-	"SD_keep": "exp_mult",
+	"SD_groom": "hp.choice('SD_groom', ['exp_add', 'exp_mult'])",
+	"SD_keep": "hp.choice('SD_groom', ['exp_add', 'exp_mult'])",
 	"alpha1": 0.5,
 	"alpha2": 0.1,
 	"SD_norm": 0.05,
 	"lnzRef1": -4,
-	"lnzRef2": -8
+	"lnzRef2": -8,
+	"dual_groomer_env": false
     },
     "groomer_agent": {
 	"learning_rate": "hp.loguniform('learning_rate', -10, 0)",
-	"nb_actions": 2,
+	"enable_dueling_network": "hp.choice('enable_dueling_network', [false, true])",
+	"enable_double_dqn": "hp.choice('enable_double_dqn', [false, true])",
+	"policy": "hp.choice('policy', [boltzmann, epsgreedyq])",
 	"nstep": "hp.choice('nstep', [1000, 10000])",
 	"architecture": "hp.choice('architecture', ['Dense', 'LSTM'])",
 	"dropout": 0.05,
@@ -27,6 +31,8 @@
 	"url": "mongo://localhost:1234/groomer/jobs",
 	"exp_key": "exp1"
     },
-    "testfn": "../data/test/test_WW_2TeV.json.gz",
-    "testfn_bkg": "../data/test/test_QCD_2TeV.json.gz"
+    "test": {
+	"fn": "../data/test/test_WW_2TeV.json.gz",
+	"fn_bkg": "../data/test/test_QCD_2TeV.json.gz"
+    }
 }

@@ -5,7 +5,7 @@ from groomer.observables import mass
 from groomer.tools import get_window_width
 from groomer.DQNAgentGroom import DQNAgentGroom
 from groomer.JetTree import LundCoordinates
-from rl.policy import BoltzmannQPolicy
+from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
 from keras.models import Sequential
@@ -29,7 +29,7 @@ def build_model(hps, input_dim):
             model.add(Activation('relu'))
         if hps['dropout']>0.0:
             model.add(Dropout(hps['dropout']))
-        model.add(Dense(hps['nb_actions']))
+        model.add(Dense(2))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
         model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim))))
@@ -52,8 +52,17 @@ def build_dqn(hps, input_dim):
     # set up the DQN agent
     model = build_model(hps, input_dim)
     memory = SequentialMemory(limit=500000, window_length=1)
-    policy = BoltzmannQPolicy()
+    if hps["policy"]=="boltzmann":
+        policy = BoltzmannQPolicy()
+    elif hps["policy"]=="epsgreedyq":
+        policy = EpsGreedyQPolicy()
+    else:
+        raise ValueError("Invalid policy: %s"%hps["policy"])
+    duelnet = hps["enable_dueling_network"]
+    doubdqn = hps["enable_double_dqn"]
     agent = DQNAgentGroom(model=model, nb_actions=2,
+                          enable_dueling_network=duelnet,
+                          enable_double_dqn=doubdqn,
                           memory=memory, nb_steps_warmup=500,
                           target_model_update=1e-2, policy=policy)
     agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
@@ -67,16 +76,14 @@ def load_runcard(runcard):
         res = json.load(f)
     # if there is a state_dim variable, set up LundCoordinates accordingly
     env_setup = res.get("groomer_env")
-    if "state_dim" in env_setup:
-        LundCoordinates.change_dimension(env_setup["state_dim"])
+    LundCoordinates.change_dimension(env_setup["state_dim"])
     return res
     
 #----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
-    if "dual_groomer_env" in groomer_agent_setup and \
-       groomer_agent_setup["dual_groomer_env"]:
+    if env_setup["dual_groomer_env"]:
         groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,
                                    high=LundCoordinates.high)
     else:

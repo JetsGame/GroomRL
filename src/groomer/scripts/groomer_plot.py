@@ -32,15 +32,15 @@ def main():
     groomer.load_with_json(modeljson_fn, modelwgts_fn)
 
     # generating invmass plot
-    plot_mass(groomer, runcard['testfn'], mass_ref=runcard['groomer_env']['mass'],
+    plot_mass(groomer, runcard['test']['fn'], mass_ref=runcard['groomer_env']['mass'],
               output_folder=output, nev=args.nev)
 
     # generate lund plane plot
-    plot_lund(groomer, runcard['testfn'], output_folder=output, nev=args.nev)
+    plot_lund(groomer, runcard['test']['fn'], output_folder=output, nev=args.nev)
 
-    if 'testfn_bkg' in runcard:
+    if 'fn_bkg' in runcard['test']:
         # generating plots for the background
-        plot_mass(groomer, runcard['testfn_bkg'], mass_ref=runcard['groomer_env']['mass'],
+        plot_mass(groomer, runcard['test']['fn_bkg'], mass_ref=runcard['groomer_env']['mass'],
                   output_folder=output, nev=args.nev, background=True)
-        plot_lund(groomer, runcard['testfn_bkg'], output_folder=output,
+        plot_lund(groomer, runcard['test']['fn_bkg'], output_folder=output,
                   nev=args.nev, background=True)

@@ -61,7 +61,7 @@ class GroomEnv(gym.Env):
         elif hps['reward']=='inverse':
             self.__reward=self.__reward_Inverse
         else:
-            raise ValueError('Invalid reward: %s'%reward)
+            raise ValueError('Invalid reward: %s'%hps['reward'])
         if hps['SD_groom']=='exp_add':
             self.__reward_Groom=self.__reward_Exp_add
         elif hps['SD_groom']=='exp_mult':
