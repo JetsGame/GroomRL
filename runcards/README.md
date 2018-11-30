@@ -3,7 +3,7 @@ Runcard setup
 
 Parameters are defined through a runcard which is stored in json format.
 
-It is made of a dictionary of up to four entries
+It is made of a dictionary of up to five entries
 
 ## groomer_env
 The groomer_env entry is itself a dictionary containing all the
