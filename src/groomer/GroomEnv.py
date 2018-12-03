@@ -1,17 +1,14 @@
-import random, math, gym, copy, os, pickle
+import random, math, pprint
 from groomer.read_data import Jets
 #from tools import declusterings, kinematics_node, coords
 from groomer.JetTree import JetTree, LundCoordinates
-from gym import spaces, logger
+from gym import spaces, Env
 from gym.utils import seeding
 import heapq as hq
-import fastjet as fj
 import numpy as np
-import json, warnings, pprint
-
     
 #======================================================================
-class GroomEnv(gym.Env):
+class GroomEnv(Env):
     """Class defining a gym environment for the groomer."""
     #---------------------------------------------------------------------- 
     def __init__(self, hps, low, high):

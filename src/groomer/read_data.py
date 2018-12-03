@@ -1,7 +1,7 @@
 import json, gzip, sys
 from abc import ABC, abstractmethod
 import numpy as np
-from math import log, ceil, floor, cos, sin, pi
+from math import log, ceil, floor, pi
 import fastjet as fj
 
 #======================================================================

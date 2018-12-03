@@ -2,7 +2,6 @@
     groomer_apply.py: the entry point for groomer-apply.
 """
 from groomer.Groomer import Groomer
-from groomer.JetTree import *
 from groomer.diagnostics import plot_mass, plot_lund
 from groomer.models import load_runcard
 import json
