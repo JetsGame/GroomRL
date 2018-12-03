@@ -1,8 +1,7 @@
 from groomer.GroomEnv import GroomEnv, GroomEnvDual
 import numpy as np
 
-from groomer.observables import mass
-from groomer.tools import get_window_width
+from groomer.tools import get_window_width, mass
 from groomer.DQNAgentGroom import DQNAgentGroom
 from groomer.JetTree import LundCoordinates
 from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy

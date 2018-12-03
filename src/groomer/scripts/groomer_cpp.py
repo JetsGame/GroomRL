@@ -1,13 +1,9 @@
 """
     groomer_cpp.py: the entry point for groomer-cpp.
 """
-from groomer.Groomer import Groomer, RSD
-from groomer.JetTree import *
-from groomer.observables import *
-from groomer.read_clustseq_json import Jets
 from groomer.keras_to_cpp import keras_to_cpp, check_model
+from groomer.models import load_runcard
 from keras.models import model_from_json
-import numpy as np
 import pickle, json
 import argparse, os, ast
 

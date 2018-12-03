@@ -1,7 +1,7 @@
 from groomer.Groomer import RSD
 from groomer.JetTree import *
-from groomer.read_clustseq_json import Jets
-from groomer.observables import mass
+from groomer.read_data import Jets
+from groomer.tools import mass
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np

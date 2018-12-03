@@ -1,7 +1,7 @@
 """
     groomer.py: the entry point for the groomer.
 """
-from groomer.read_clustseq_json import Jets
+from groomer.read_data import Jets
 from groomer.models import build_and_train_model, load_runcard
 from groomer.diagnostics import plot_mass, plot_lund
 from groomer.keras_to_cpp import keras_to_cpp, check_model

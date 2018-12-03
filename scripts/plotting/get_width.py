@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # given a histogram, find the smallest-width window that contains a
 # fraction f of the events
@@ -130,5 +130,5 @@ if iminlo<0:
     frac = (0.5*f-winsum)/next_add
     winmid=a[2][ilo]-frac*(a[2][ilo]-a[0][ilo])
 
-print winmin,winmid,winmax
+print(winmin,winmid,winmax)
         
