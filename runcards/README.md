@@ -38,7 +38,6 @@ The groomer_agent contains all the parameters for the DQN and NN
 - dropout: value for dropout layer (ignored if 0)
 - nb_units: number of units in NN
 - nb_layers: number of layers for Dense architecture
-- nb_actions:
 
 ## cluster
 The parameters for cluster runs
