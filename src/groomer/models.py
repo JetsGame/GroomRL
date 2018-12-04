@@ -29,13 +29,13 @@ def build_model(hps, input_dim):
             model.add(Activation('relu'))
         if hps['dropout']>0.0:
             model.add(Dropout(hps['dropout']))
-        model.add(Dense(hps['nb_actions']))
+        model.add(Dense(2))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
         model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim))))
         if hps['dropout']>0.0:
             model.add(Dropout(hps['dropout']))
-        model.add(Dense(hps['nb_actions']))
+        model.add(Dense(2))
         model.add(Activation('linear'))
     print(model.summary())
     return model
@@ -129,10 +129,8 @@ def build_and_train_model(groomer_agent_setup):
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
         groomed_jets = []
-        print(env_setup['val'])
         reader = Jets(env_setup['val'], env_setup['nev']) # load validation set
         for jet in reader.values():
-            print('ciao')
             groomed_jets.append(dqn.groomer()(jet))
         masses = np.array(mass(groomed_jets))
         lower, upper, median = get_window_width(masses)

@@ -27,7 +27,6 @@
 	"dropout": "hp.choice('dropout', [0.02, 0.05, 0.1])",
 	"nb_layers": "hp.choice('nb_layers', [1, 3, 5, 10])",
 	"nb_units": "hp.choice('nb_units', [5, 100, 200])",
-	"nb_actions": 2,
 	"optimizer": "hp.choice('optimizer', ['Adam','RMSprop','SGD','Adagrad'])"
     },
     "cluster": {
