@@ -28,8 +28,9 @@ def run_hyperparameter_scan(search_space):
         trials = MongoTrials(url, exp_key=key)
     else:
         trials = Trials()
-    best = fmin(build_and_train_model, search_space, algo=tpe.suggest, max_evals=5, trials=trials)
-    
+    max_evals = search_space['cluster']['max_evals']
+    best = fmin(build_and_train_model, search_space, algo=tpe.suggest, max_evals=max_evals, trials=trials)
+
     best_setup = space_eval(search_space, best)
     print('\n[+] Best scan setup:')
     pprint.pprint(best_setup)
@@ -61,7 +62,7 @@ def makedir(folder):
     """Create directory."""
     if not os.path.exists(folder):
         os.mkdir(folder)
-    else:    
+    else:
         raise Exception('Output folder already exists.')
 
 
@@ -82,7 +83,7 @@ def main():
 
     # create output folder
     base = os.path.basename(args.runcard)
-    out = os.path.splitext(base)[0] 
+    out = os.path.splitext(base)[0]
     if args.output is not None:
         out = args.output
     makedir(out)
@@ -90,23 +91,23 @@ def main():
 
     # copy runcard to output folder
     copyfile(args.runcard, f'{out}/runcard.json')
-    
+
     # groomer common environment setup
     if setup.get('scan'):
         groomer_agent_setup = run_hyperparameter_scan(setup)
     else:
         # create the DQN agent and train it.
         groomer_agent_setup = setup
-    
+
     print('[+] Training best model:')
     dqn = build_and_train_model(groomer_agent_setup)
-    
+
     fnres = '%s/test_predictions.pickle' % setup['output']
 
     print('[+] Done with training, now testing on sample set')
     if os.path.exists(fnres):
         os.remove(fnres)
-    
+
     # now use model trained by DQN to groom test sample
     groomer = dqn.groomer()
     reader = Jets(setup['test']['fn'], args.nev)
@@ -124,7 +125,7 @@ def main():
         makedir(plotdir)
         # generating invmass plot
         plot_mass(groomer, setup['test']['fn'], mass_ref=setup['groomer_env']['mass'],
-                  output_folder=plotdir, nev=args.nev) 
+                  output_folder=plotdir, nev=args.nev)
         # generate lund plane plot
         plot_lund(groomer, setup['test']['fn'], output_folder=plotdir, nev=args.nev)
 
@@ -134,7 +135,7 @@ def main():
                       output_folder=plotdir, nev=args.nev, background=True)
             plot_lund(groomer, setup['test']['fn_bkg'], output_folder=plotdir,
                       nev=args.nev, background=True)
-            
+
 
     # if requested, add cpp output
     if args.cpp:

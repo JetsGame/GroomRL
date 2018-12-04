@@ -9,6 +9,8 @@ It is made of a dictionary with several entries
 The groomer_env entry is itself a dictionary containing all the
 environment parameters for the groomer.
 - fn: the data set used for the fit
+- fn_bkg: training file of background events for the fit
+- val: the validation data for the fit
 - mass: the target mass
 - nev: number of events to load
 - width: width parameter used in the reward
@@ -36,12 +38,14 @@ The groomer_agent contains all the parameters for the DQN and NN
 - dropout: value for dropout layer (ignored if 0)
 - nb_units: number of units in NN
 - nb_layers: number of layers for Dense architecture
+- nb_actions:
 
 ## cluster
 The parameters for cluster runs
 - enable: enable cluster mode (true or false)
 - url: url for MongoTrials
 - exp_key: exp_key parameter
+- max_evals: maximum number of evaluations for the grid search
 
 ## test
 Contains information about the test data

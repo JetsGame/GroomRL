@@ -4,12 +4,13 @@ import numpy as np
 from groomer.tools import get_window_width, mass
 from groomer.DQNAgentGroom import DQNAgentGroom
 from groomer.JetTree import LundCoordinates
+from groomer.read_data import Jets
 from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD, RMSprop, Adagrad
 from keras.callbacks import TensorBoard
 
 from hyperopt import STATUS_OK
@@ -28,7 +29,7 @@ def build_model(hps, input_dim):
             model.add(Activation('relu'))
         if hps['dropout']>0.0:
             model.add(Dropout(hps['dropout']))
-        model.add(Dense(2))
+        model.add(Dense(hps['nb_actions']))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
         model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim))))
@@ -64,7 +65,17 @@ def build_dqn(hps, input_dim):
                           enable_double_dqn=doubdqn,
                           memory=memory, nb_steps_warmup=500,
                           target_model_update=1e-2, policy=policy)
-    agent.compile(Adam(lr=hps['learning_rate']), metrics=['mae'])
+
+    if hps['optimizer'] == 'Adam':
+        opt = Adam(lr=hps['learning_rate'])
+    elif hps['optimizer']  == 'SGD':
+        opt = SGD(lr=hps['learning_rate'])
+    elif hps['optimizer'] == 'RMSprop':
+        opt = RMSprop(lr=hps['learning_rate'])
+    elif hps['optimizer'] == 'Adagrad':
+        opt = Adagrad(lr=hps['learning_rate'])
+
+    agent.compile(opt, metrics=['mae'])
 
     return agent
 
@@ -77,7 +88,7 @@ def load_runcard(runcard):
     env_setup = res.get("groomer_env")
     LundCoordinates.change_dimension(env_setup["state_dim"])
     return res
-    
+
 #----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
@@ -118,7 +129,10 @@ def build_and_train_model(groomer_agent_setup):
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
         groomed_jets = []
-        for jet in groomer_env.events:
+        print(env_setup['val'])
+        reader = Jets(env_setup['val'], env_setup['nev']) # load validation set
+        for jet in reader.values():
+            print('ciao')
             groomed_jets.append(dqn.groomer()(jet))
         masses = np.array(mass(groomed_jets))
         lower, upper, median = get_window_width(masses)

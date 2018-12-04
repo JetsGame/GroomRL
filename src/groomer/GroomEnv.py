@@ -6,14 +6,14 @@ from gym import spaces, Env
 from gym.utils import seeding
 import heapq as hq
 import numpy as np
-    
+
 #======================================================================
 class GroomEnv(Env):
     """Class defining a gym environment for the groomer."""
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def __init__(self, hps, low, high):
         """
-        Initialisation of the environment using a dictionary with hyperparameters 
+        Initialisation of the environment using a dictionary with hyperparameters
         and a lower and upper bound for the observable state.
 
         The hps dictionary should have the following entries:
@@ -64,13 +64,13 @@ class GroomEnv(Env):
         elif hps['SD_groom']=='exp_mult':
             self.__reward_Groom=self.__reward_Exp_mult
         else:
-            raise valueError('Invalid SD_groom: %s'%hps['SD_groom'])
+            raise ValueError('Invalid SD_groom: %s'%hps['SD_groom'])
         if hps['SD_keep']=='exp_add':
             self.__reward_Keep=self.__reward_Exp_add
         elif hps['SD_keep']=='exp_mult':
             self.__reward_Keep=self.__reward_Exp_mult
         else:
-            raise valueError('Invalid SD_keep: %s'%hps['SD_keep'])
+            raise ValueError('Invalid SD_keep: %s'%hps['SD_keep'])
         self.alpha1  = hps['alpha1']
         self.alpha2  = hps['alpha2']
         self.SDnorm  = hps['SD_norm']
@@ -79,7 +79,7 @@ class GroomEnv(Env):
         # the separate reward and reward_sig functions are required for
         # the GroomEnvDual class
         self.reward  = self.reward_sig
-        
+
         # # set variables needed for the SD reward
         # self.alpha1 = 0.5
         # self.alpha2 = 0.4
@@ -94,11 +94,11 @@ class GroomEnv(Env):
         # for alternative implementation
         # self.lnzRef1 = -8
         # self.lnzRef2 = -8
-        
+
         self.description= '%s with\n%s' % (self.__class__.__name__,pprint.pformat(hps))
         print('Setting up %s' % self.description)
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def get_random_tree(self):
         """Get a random jet tree from the list of events"""
         # get random event
@@ -157,19 +157,19 @@ class GroomEnv(Env):
     def __reward_Exp_mult(self, lnDelta, lnz, alpha, lnzRef):
         """Exponential of multiplication of lnDelta and lnz."""
         return math.exp(-alpha*lnDelta*(lnzRef - lnz))
-        
-    #---------------------------------------------------------------------- 
+
+    #----------------------------------------------------------------------
     def reward_mass(self,mass):
         """For a given jet mass, return the output of the reward function."""
         massdiff = abs(mass - self.massgoal)
-        return self.__reward(massdiff/self.mass_width)    
-    
-    #---------------------------------------------------------------------- 
+        return self.__reward(massdiff/self.mass_width)
+
+    #----------------------------------------------------------------------
     def reward_SD(self, lnz, lnDelta, is_groomed):
         """
         For a given jet mass, return the output of the Soft Drop component
         of the reward function.
-        """# # 
+        """# #
         if is_groomed:
             reward = min(1.0, self.__reward_Groom(lnDelta, lnz, self.alpha1, self.lnzRef1))
             # reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
@@ -181,19 +181,19 @@ class GroomEnv(Env):
             # alternative implementation
             # reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
         return self.SDnorm*reward
-    
-    #---------------------------------------------------------------------- 
+
+    #----------------------------------------------------------------------
     def reward_sig(self, mass, lnz, lnDelta, is_groomed):
         """Full reward function."""
         return self.reward_mass(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def seed(self, seed=None):
         """Initialize the seed."""
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def step(self, action):
         """Perform a step using the current declustering node, deciding whether to groom the soft branch or note and advancing to the next node."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
@@ -204,51 +204,51 @@ class GroomEnv(Env):
         # if action==1, then we remove the softer branch
         if remove_soft:
             tree.remove_soft()
-            
+
         # then add the subjets to the priority_queue
         if tree.harder and tree.harder.delta2 > 0.0:
             hq.heappush(self.current_pq, tree.harder)
         if tree.softer and tree.softer.delta2 > 0.0:
             hq.heappush(self.current_pq, tree.softer)
-            
+
         # calculate the mass
         # m^2 = declust[0].E()*declust[0].E() - declust[0].px()*declust[0].px() - declust[0].py()*declust[0].py() - declust[0].pz()*declust[0].pz()
         jet  = self.root.jet()
         msq  = jet[3]*jet[3] - jet[0]*jet[0] - jet[1]*jet[1] - jet[2]*jet[2]
         mass = math.sqrt(msq) if msq > 0.0 else -math.sqrt(-msq)
-        
+
         # calculate a reward
         reward = self.reward(mass, lnz, lnDelta, action==1)
 
         # move to the next node in the clustering sequence
         self.set_next_node()
-        
+
         # if we are at the end of the declustering list, then we are done for this event.
         done = bool(not self.current)
 
         # return the state, reward, and status
         return self.state, reward, done, {}
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def reset(self):
         """Reset internal list of declusterings to a new random jet."""
         self.reset_current_tree()
         return self.state
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def render(self, mode='human'):
         """Save masses in an output files"""
         pass
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def close(self):
         if self.viewer: self.viewer.close()
 
- 
+
 #======================================================================
 class GroomEnvDual(GroomEnv):
     """Class defining a gym environment for the groomer with both signal and background events."""
 
-    #---------------------------------------------------------------------- 
+    #----------------------------------------------------------------------
     def __init__(self, hps, *args, **kwargs):
         """
         Initialisation of the environment. The dictionary for GroomEnvDual requires
@@ -265,7 +265,7 @@ class GroomEnvDual(GroomEnv):
     #----------------------------------------------------------------------
     def get_random_tree(self):
         """Get a random jet tree from either the signal or the background list of events."""
-        if random.getrandbits(1): 
+        if random.getrandbits(1):
             self.signal = True
             event = random.choice(self.events)
         else:
@@ -278,12 +278,12 @@ class GroomEnvDual(GroomEnv):
         """Reward for current jet mass, for background events."""
         x = abs(mass/self.mass_width_bkg)
         return 1.0/(math.pi*(1.0 + (x*x)))
-    
+
     #----------------------------------------------------------------------
     def reward_bkg(self, mass, lnz, lnDelta, is_groomed):
         """Reward function for background events."""
         return self.reward_mass_bkg(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
-        
+
     #----------------------------------------------------------------------
     def reward_total(self, mass, lnz, lnDelta, is_groomed):
         """Full reward function."""
@@ -300,22 +300,22 @@ class GroomEnvSD(GroomEnv):
         self.zcut = zcut
         self.beta = beta
         GroomEnv.__init__(self, hps, low, high)
-        
-    #---------------------------------------------------------------------- 
+
+    #----------------------------------------------------------------------
     def step(self, action):
         """Perform a grooming step, removing the soft branch if it fails the Soft Drop condition."""
         assert self.action_space.contains(action), "%r (%s) invalid"%(action, type(action))
-    
+
         # get the current state
         tree = self.current
         lnz, lnDelta = self.state[:2]
-        
+
         # check if soft drop condition is satisfied
         remove_soft = (math.exp(lnz) < self.zcut * math.pow(math.exp(lnDelta), self.beta))
         # if soft drop condition is not verified, remove the soft branch.
         if remove_soft:
             tree.remove_soft()
-            
+
         # then add the subjets to the priority_queue
         if tree.harder and tree.harder.delta2 > 0.0:
             hq.heappush(self.current_pq, tree.harder)
@@ -324,9 +324,9 @@ class GroomEnvSD(GroomEnv):
 
         # move to the next node in clustering sequence
         self.set_next_node()
-        
+
         # if we are at the end of the declustering list, then we are done for this event.
         done = bool(not self.current)
-                
+
         # return the state, reward, and status
         return self.state, 0.0, done, {}

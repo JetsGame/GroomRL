@@ -1,7 +1,7 @@
 {
     "groomer_env": {
 	"state_dim": 2,
-	"fn": "../data/train/WW_2TeV.json.gz",
+	"fn": "../data/train/WW_500GeV.json.gz",
 	"mass": 80.385,
 	"nev": 50000,
 	"width": 1.0,
@@ -24,10 +24,11 @@
 	"architecture": "Dense",
 	"dropout": 0.05,
 	"nb_layers": 3,
-	"nb_units": 100
+	"nb_units": 100,
+	"optimizer": "Adam"
     },
     "test": {
-	"fn": "../data/test/test_WW_2TeV.json.gz",
-	"fn_bkg": "../data/test/test_QCD_2TeV.json.gz"
+	"fn": "../data/test/test_WW_500GeV.json.gz",
+	"fn_bkg": "../data/test/test_QCD_500GeV.json.gz"
     }
 }
