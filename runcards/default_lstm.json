@@ -23,7 +23,8 @@
 	"policy": "boltzmann",
 	"architecture": "LSTM",
 	"dropout": 0.05,
-	"nb_units": 64
+	"nb_units": 64,
+	"optimizer": "Adam"
     },
     "test": {
 	"fn": "../data/test/test_WW_2TeV.json.gz",

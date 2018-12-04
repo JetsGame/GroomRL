@@ -26,7 +26,8 @@
 	"architecture": "Dense",
 	"dropout": 0.05,
 	"nb_layers": 3,
-	"nb_units": 100
+	"nb_units": 100,
+	"optimizer": "Adam"
     },
     "test": {
 	"fn": "../data/test/test_WW_2TeV.json.gz",
