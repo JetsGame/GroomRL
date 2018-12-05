@@ -12,9 +12,9 @@ def main(args):
     
     # plot loss
     nplots = len(trials[0]['misc']['vals'].keys())
-    f, axs = plt.subplots(1, nplots+1, sharey=True)
+    f, axs = plt.subplots(1, nplots+1, sharey=True, figsize=(30,10))
     x = [t['tid'] for t in trials]
-    loss = [-t['result']['loss'] for t in trials]
+    loss = [t['result']['loss'] for t in trials]
     axs[0].scatter(x, loss)
     axs[0].set_xlabel('Iteration')
     axs[0].set_ylabel('Loss')
