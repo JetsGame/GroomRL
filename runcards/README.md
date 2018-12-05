@@ -13,6 +13,7 @@ environment parameters for the groomer.
 - val: the validation data for the fit
 - mass: the target mass
 - nev: number of events to load
+- nev_val: number of events for the validation data
 - width: width parameter used in the reward
 - reward: functional form of the mass reward (cauchy, gaussian, exponential, inverse)
 - SD_groom: form of the groomed SD reward (exp_add, exp_mult)

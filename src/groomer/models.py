@@ -129,7 +129,7 @@ def build_and_train_model(groomer_agent_setup):
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
         groomed_jets = []
-        reader = Jets(env_setup['val'], env_setup['nev']) # load validation set
+        reader = Jets(env_setup['val'], env_setup['nev_val']) # load validation set
         for jet in reader.values():
             groomed_jets.append(dqn.groomer()(jet))
         masses = np.array(mass(groomed_jets))
