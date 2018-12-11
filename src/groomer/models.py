@@ -12,6 +12,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten, LSTM, Dropout
 from keras.optimizers import Adam, SGD, RMSprop, Adagrad
 from keras.callbacks import TensorBoard
+import keras.backend as K
 
 from hyperopt import STATUS_OK
 from time import time
@@ -21,6 +22,7 @@ import pprint, json
 #----------------------------------------------------------------------
 def build_model(hps, input_dim):
     """Construct the underlying model used by the DQN."""
+    K.clear_session()
     model = Sequential()
     if hps['architecture']=='Dense':
         model.add(Flatten(input_shape=(1,) + input_dim))
