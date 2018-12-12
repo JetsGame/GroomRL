@@ -15,7 +15,8 @@
 	"SD_norm": 0.05,
 	"lnzRef1": -4,
 	"lnzRef2": -8,
-	"dual_groomer_env": true
+	"dual_groomer_env": true,
+        "reward_bkg_norm": 1.0
     },
     "groomer_agent": {
 	"learning_rate": 1e-3,

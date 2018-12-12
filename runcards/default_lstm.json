@@ -24,6 +24,7 @@
 	"architecture": "LSTM",
 	"dropout": 0.05,
 	"nb_units": 64,
+	"nb_layers": 1,
 	"optimizer": "Adam"
     },
     "test": {

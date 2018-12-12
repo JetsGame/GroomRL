@@ -260,7 +260,8 @@ class GroomEnvDual(GroomEnv):
         reader_bkg      = Jets(hps['fn_bkg'], hps['nev'])
         self.events_bkg = reader_bkg.values()
         self.mass_width_bkg = hps['width_bkg']
-        self.reward=self.reward_total
+        self.reward   = self.reward_total
+        self.norm_bkg = hps['reward_bkg_norm']
 
     #----------------------------------------------------------------------
     def get_random_tree(self):

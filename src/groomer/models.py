@@ -34,7 +34,11 @@ def build_model(hps, input_dim):
         model.add(Dense(2))
         model.add(Activation('linear'))
     elif hps['architecture']=='LSTM':
-        model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim))))
+        model.add(LSTM(hps['nb_units'], input_shape = (1,max(input_dim)),
+                       return_sequences=not (hps['nb_layers']==1)))
+        for i in range(hps['nb_layers']-1):
+            model.add(LSTM(hps['nb_units'],
+                           return_sequences=not (i+2==hps['nb_layers'])))
         if hps['dropout']>0.0:
             model.add(Dropout(hps['dropout']))
         model.add(Dense(2))
