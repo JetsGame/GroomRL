@@ -58,7 +58,7 @@ def plot_scans(df, bestdf, trials, bestid, file):
     # plot features
     for p, k in enumerate(trials[0]['misc']['vals'].keys()):
 
-        if k in ('learning_rate','alpha1','alpha2','SD_norm','lnzRef1','lnzRef2'):
+        if k in ('learning_rate','alpha1','alpha2','SD_norm','lnzRef1','lnzRef2','reward_bkg_norm'):
             axs[p+5].scatter(df.get(k), df.get('loss'))
             if k in 'learning_rate':
                 axs[p+5].set_xscale('log')
