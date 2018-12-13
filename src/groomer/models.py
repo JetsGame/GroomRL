@@ -90,13 +90,21 @@ def load_runcard(runcard):
     """Read in a runcard json file and set up dimensions correctly."""
     with open(runcard,'r') as f:
         res = json.load(f)
+    # if there is a state_dim variable, set up LundCoordinates accordingly
+    # unless we are doing a scan (in which case it needs to be done later)
+    env_setup = res.get("groomer_env")
+    if not type(env_setup["state_dim"])==str:
+        LundCoordinates.change_dimension(env_setup["state_dim"])
     return res
 
 #----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
-    LundCoordinates.change_dimension(env_setup["state_dim"])
+    # if it hasn't been done yet (because we are doing a scan), we
+    # need to change dimensions here 
+    if not env_setup["state_dim"]==LundCoordinates.dimension:
+        LundCoordinates.change_dimension(env_setup["state_dim"])
 
     if env_setup["dual_groomer_env"]:
         groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,
