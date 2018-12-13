@@ -116,20 +116,21 @@ def build_and_train_model(groomer_agent_setup):
     r = dqn.fit(groomer_env, nb_steps=agent_setup['nstep'],
                 visualize=False, verbose=1, callbacks=[tensorboard])
 
-    # After training is done, we save the final weights.
-    weight_file = '%s/weights.h5' % groomer_agent_setup['output']
-    print(f'[+] Saving weights to {weight_file}')
-    dqn.save_weights(weight_file, overwrite=True)
-
-    # save the model architecture in json
-    model_file = '%s/model.json' % groomer_agent_setup['output']
-    print(f'[+] Saving model to {model_file}')
-    with open(model_file, 'w') as outfile:
-        json.dump(dqn.model.to_json(), outfile)
-
     # compute nominal reward after training
     median_reward = np.median(r.history['episode_reward'])
     print(f'[+] Median reward: {median_reward}')
+
+    # After training is done, we save the final weights.
+    if not groomer_agent_setup['scan']:
+        weight_file = '%s/weights.h5' % groomer_agent_setup['output']
+        print(f'[+] Saving weights to {weight_file}')
+        dqn.save_weights(weight_file, overwrite=True)
+
+        # save the model architecture in json
+        model_file = '%s/model.json' % groomer_agent_setup['output']
+        print(f'[+] Saving model to {model_file}')
+        with open(model_file, 'w') as outfile:
+            json.dump(dqn.model.to_json(), outfile)
 
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
