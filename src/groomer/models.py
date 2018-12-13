@@ -90,15 +90,14 @@ def load_runcard(runcard):
     """Read in a runcard json file and set up dimensions correctly."""
     with open(runcard,'r') as f:
         res = json.load(f)
-    # if there is a state_dim variable, set up LundCoordinates accordingly
-    env_setup = res.get("groomer_env")
-    LundCoordinates.change_dimension(env_setup["state_dim"])
     return res
 
 #----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
+    LundCoordinates.change_dimension(env_setup["state_dim"])
+
     if env_setup["dual_groomer_env"]:
         groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,
                                    high=LundCoordinates.high)
@@ -117,20 +116,21 @@ def build_and_train_model(groomer_agent_setup):
     r = dqn.fit(groomer_env, nb_steps=agent_setup['nstep'],
                 visualize=False, verbose=1, callbacks=[tensorboard])
 
-    # After training is done, we save the final weights.
-    weight_file = '%s/weights.h5' % groomer_agent_setup['output']
-    print(f'[+] Saving weights to {weight_file}')
-    dqn.save_weights(weight_file, overwrite=True)
-
-    # save the model architecture in json
-    model_file = '%s/model.json' % groomer_agent_setup['output']
-    print(f'[+] Saving model to {model_file}')
-    with open(model_file, 'w') as outfile:
-        json.dump(dqn.model.to_json(), outfile)
-
     # compute nominal reward after training
     median_reward = np.median(r.history['episode_reward'])
     print(f'[+] Median reward: {median_reward}')
+
+    # After training is done, we save the final weights.
+    if not groomer_agent_setup['scan']:
+        weight_file = '%s/weights.h5' % groomer_agent_setup['output']
+        print(f'[+] Saving weights to {weight_file}')
+        dqn.save_weights(weight_file, overwrite=True)
+
+        # save the model architecture in json
+        model_file = '%s/model.json' % groomer_agent_setup['output']
+        print(f'[+] Saving model to {model_file}')
+        with open(model_file, 'w') as outfile:
+            json.dump(dqn.model.to_json(), outfile)
 
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)

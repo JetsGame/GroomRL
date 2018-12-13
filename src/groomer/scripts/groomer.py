@@ -51,8 +51,12 @@ def load_json(runcard_file):
     """
     runcard = load_runcard(runcard_file)
     runcard['scan'] = False
+    for key, value in runcard.get('groomer_env').items():
+        if 'hp.' in str(value):
+            runcard['groomer_env'][key] = eval(value)
+            runcard['scan'] = True
     for key, value in runcard.get('groomer_agent').items():
-        if 'hp' in str(value):
+        if 'hp.' in str(value):
             runcard['groomer_agent'][key] = eval(value)
             runcard['scan'] = True
     return runcard
@@ -63,7 +67,7 @@ def makedir(folder):
     if not os.path.exists(folder):
         os.mkdir(folder)
     else:
-        raise Exception('Output folder already exists.')
+        raise Exception('Output folder %s already exists.' % folder)
 
 
 #----------------------------------------------------------------------
@@ -90,7 +94,7 @@ def main():
     setup['output'] = out
 
     # copy runcard to output folder
-    copyfile(args.runcard, f'{out}/runcard.json')
+    copyfile(args.runcard, f'{out}/input-runcard.json')
 
     # groomer common environment setup
     if setup.get('scan'):
@@ -101,6 +105,10 @@ def main():
 
     print('[+] Training best model:')
     dqn = build_and_train_model(groomer_agent_setup)
+
+    # save the final runcard
+    with open(f'{out}/runcard.json','w') as f:
+        json.dump(groomer_agent_setup, f)
 
     fnres = '%s/test_predictions.pickle' % setup['output']
 

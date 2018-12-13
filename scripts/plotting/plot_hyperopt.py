@@ -58,10 +58,11 @@ def plot_scans(df, bestdf, trials, bestid, file):
     # plot features
     for p, k in enumerate(trials[0]['misc']['vals'].keys()):
 
-        if 'learning_rate' in k:
+        if k in ('learning_rate','alpha1','alpha2','SD_norm','lnzRef1','lnzRef2'):
             axs[p+5].scatter(df.get(k), df.get('loss'))
-            axs[p+5].set_xscale('log')
-            axs[p+5].set_xlim([1e-5, 1])
+            if k in 'learning_rate':
+                axs[p+5].set_xscale('log')
+                axs[p+5].set_xlim([1e-5, 1])
         else:
             sns.violinplot(df.get(k), df.get('loss'), ax=axs[p+5], palette="Set2",cut=0.0)
         axs[p+5].set_xlabel(k)
