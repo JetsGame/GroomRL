@@ -291,7 +291,7 @@ class GroomEnvDual(GroomEnv):
         if self.signal:
             return self.reward_sig(mass, lnz, lnDelta, is_groomed)
         else:
-            return self.reward_bkg(mass, lnz, lnDelta, is_groomed)
+            return self.norm_bkg*self.reward_bkg(mass, lnz, lnDelta, is_groomed)
 
 #======================================================================
 class GroomEnvSD(GroomEnv):
