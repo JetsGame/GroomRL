@@ -51,8 +51,12 @@ def load_json(runcard_file):
     """
     runcard = load_runcard(runcard_file)
     runcard['scan'] = False
+    for key, value in runcard.get('groomer_env').items():
+        if 'hp.' in str(value):
+            runcard['groomer_env'][key] = eval(value)
+            runcard['scan'] = True
     for key, value in runcard.get('groomer_agent').items():
-        if 'hp' in str(value):
+        if 'hp.' in str(value):
             runcard['groomer_agent'][key] = eval(value)
             runcard['scan'] = True
     return runcard
@@ -63,7 +67,7 @@ def makedir(folder):
     if not os.path.exists(folder):
         os.mkdir(folder)
     else:
-        raise Exception('Output folder already exists.')
+        raise Exception('Output folder %s already exists.' % folder)
 
 
 #----------------------------------------------------------------------
