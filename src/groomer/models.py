@@ -98,6 +98,25 @@ def load_runcard(runcard):
     return res
 
 #----------------------------------------------------------------------
+def loss_calc(fn_sig, fn_bkg, nev, massref):
+        reader_sig = Jets(fn_sig, nev) # load validation set
+        reader_bkg = Jets(fn_bkg, nev) # load validation set
+        groomed_jets_sig = []
+        for jet in reader_sig.values():
+            groomed_jets_sig.append(dqn.groomer()(jet))
+        masses_sig = np.array(mass(groomed_jets_sig))
+        lower, upper, median = get_window_width(masses_sig)
+        groomed_jets_bkg = []
+        for jet in reader_bkg.values():
+            groomed_jets_bkg.append(dqn.groomer()(jet))
+        masses_bkg = np.array(mass(groomed_jets_bkg))
+        # calculate the loss function
+        count_bkg = ((masses_bkg > lower) & (masses_bkg < upper)).sum()
+        frac_bkg = count_bkg/float(len(masses_bkg))
+        loss = abs(upper-lower)/5 + abs(median-massref) + frac_bkg*20
+        return loss, (lower,upper,median)
+
+#----------------------------------------------------------------------
 def build_and_train_model(groomer_agent_setup):
     """Run a test model"""
     env_setup = groomer_agent_setup.get('groomer_env')
@@ -142,15 +161,10 @@ def build_and_train_model(groomer_agent_setup):
 
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
-        groomed_jets = []
-        reader = Jets(env_setup['val'], env_setup['nev_val']) # load validation set
-        for jet in reader.values():
-            groomed_jets.append(dqn.groomer()(jet))
-        masses = np.array(mass(groomed_jets))
-        lower, upper, median = get_window_width(masses)
-        loss = abs(upper-lower)/5 + abs(median-env_setup['mass'])
+        loss, window = loss_calc(env_setup['val'], env_setup['val_bkg'],
+                                 env_setup['nev_val'],env_setup['mass'])
         print(f'Loss function for scan = {loss}')
-        res = {'loss': loss, 'reward': median_reward, 'window': (lower,upper,median),
+        res = {'loss': loss, 'reward': median_reward, 'window': window,
                'status': STATUS_OK}
     else:
         res = dqn
