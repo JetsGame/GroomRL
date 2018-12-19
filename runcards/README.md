@@ -19,7 +19,9 @@ environment parameters for the groomer.
 - SD_groom: form of the groomed SD reward (exp_add, exp_mult)
 - SD_keep: form of the ungroomed SD reward (exp_add, exp_mult)
 - alpha1: parameter for groomed SD reward
+- beta1: parameter for groomed SD reward
 - alpha2: parameter for kept SD reward
+- beta2: parameter for kept SD reward
 - SDnorm: normalisation factor for SD reward
 - lnzRef1: parameter for groomed SD reward
 - lnzRef2: parameter for kept SD reward

@@ -25,7 +25,9 @@ class GroomEnv(Env):
         - SD_groom: type of SD reward for groomed subjets (exp_add or exp_mult)
         - SD_keep: type of SD reward for kept subjets (exp_add or exp_mult)
         - alpha1: parameter for groomed SD reward
+        - beta1: parameter for groomed SD reward
         - alpha2: parameter for kept SD reward
+        - beta2: parameter for kept SD reward
         - SDnorm: normalisation factor for SD reward
         - lnzRef1: parameter for groomed SD reward
         - lnzRef2: parameter for kept SD reward
@@ -72,7 +74,9 @@ class GroomEnv(Env):
         else:
             raise ValueError('Invalid SD_keep: %s'%hps['SD_keep'])
         self.alpha1  = hps['alpha1']
+        self.beta1   = hps['beta1']
         self.alpha2  = hps['alpha2']
+        self.beta2   = hps['beta2']
         self.SDnorm  = hps['SD_norm']
         self.lnzRef1 = hps['lnzRef1']
         self.lnzRef2 = hps['lnzRef2']
@@ -149,12 +153,12 @@ class GroomEnv(Env):
         return min(1.0, 1.0/(x + 0.5))
 
     #----------------------------------------------------------------------
-    def __reward_Exp_add(self, lnDelta, lnz, alpha, lnzRef):
+    def __reward_Exp_add(self, lnDelta, lnz, alpha, beta, lnzRef):
         """Exponential of addition of lnDelta and lnz."""
-        return math.exp(alpha*lnDelta + alpha*(lnzRef - lnz))
+        return math.exp(alpha*lnDelta + beta*(lnzRef - lnz))
 
     #----------------------------------------------------------------------
-    def __reward_Exp_mult(self, lnDelta, lnz, alpha, lnzRef):
+    def __reward_Exp_mult(self, lnDelta, lnz, alpha, beta, lnzRef):
         """Exponential of multiplication of lnDelta and lnz."""
         return math.exp(-alpha*lnDelta*(lnzRef - lnz))
 
@@ -171,12 +175,12 @@ class GroomEnv(Env):
         of the reward function.
         """# #
         if is_groomed:
-            reward = min(1.0, self.__reward_Groom(lnDelta, lnz, self.alpha1, self.lnzRef1))
+            reward = min(1.0, self.__reward_Groom(lnDelta, lnz, self.alpha1, self.beta1, self.lnzRef1))
             # reward = min(1.0, math.exp(self.alpha1 * lnDelta + self.alpha1*(self.lnzRef1 - lnz)))
             # alternative implementation
             # reward = min(1.0, math.exp(-self.alpha1 * lnDelta * (self.lnzRef1 - lnz)))
         else:
-            reward = max(0.0, 1.0 - self.__reward_Keep(lnDelta, lnz, self.alpha2, self.lnzRef2))
+            reward = max(0.0, 1.0 - self.__reward_Keep(lnDelta, lnz, self.alpha2, self.beta2, self.lnzRef2))
             # reward = max(0.0, 1.0 - math.exp(self.alpha2 * lnDelta + self.alpha2*(self.lnzRef2 - lnz)))
             # alternative implementation
             # reward = max(0.0, 1.0 - math.exp(-self.alpha2 * lnDelta * (self.lnzRef2 - lnz)))
