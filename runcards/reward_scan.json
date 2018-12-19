@@ -1,0 +1,46 @@
+{
+    "groomer_env": {
+	"state_dim": 5,
+	"fn": "../data/train/WW_500GeV.json.gz",
+	"val": "../data/valid/valid_WW_500GeV.json.gz",
+	"val_bkg": "../data/valid/valid_QCD_500GeV.json.gz",
+	"mass": 80.385,
+	"nev": 500000,
+	"nev_val": 50000,
+	"width": 0.5, 
+	"reward": 'cauchy',
+	"SD_groom": "hp.choice('SD_groom', ['exp_add', 'exp_mult'])",
+	"SD_keep": "hp.choice('SD_keep', ['exp_add', 'exp_mult'])",
+	"alpha1": "hp.uniform('alpha1', 0.0, 1.0)",
+	"alpha2": "hp.uniform('alpha2', 0.0, 1.0)",
+	"SD_norm": 1.0,
+	"lnzRef1": "hp.uniform('lnzRef1', -10, 0)",
+	"lnzRef2": "hp.uniform('lnzRef2', -10, 0)",
+	"dual_groomer_env": 0,
+	"fn_bkg": "../data/train/QCD_500GeV.json.gz",
+	"width_bkg": 20,
+        "reward_bkg_norm": 1.0
+    },
+    "groomer_agent": {
+	"learning_rate": 0.00034714493249855203,
+	"enable_dueling_network": 1,
+	"enable_double_dqn": 1,
+	"policy": "boltzmann",
+	"nstep": 500000,
+	"architecture": "LSTM",
+	"dropout": 0.05,
+	"nb_layers": 1,
+	"nb_units": 200,
+	"optimizer": "Adam"
+    },
+    "cluster": {
+	"enable": false,
+	"url": "mongo://localhost:1234/groomer/jobs",
+	"exp_key": "exp1",
+	"max_evals": 1000
+    },
+    "test": {
+	"fn": "../data/test/test_WW_500GeV.json.gz",
+	"fn_bkg": "../data/test/test_QCD_500GeV.json.gz"
+    }
+}
