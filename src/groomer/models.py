@@ -98,7 +98,7 @@ def load_runcard(runcard):
     return res
 
 #----------------------------------------------------------------------
-def loss_calc(fn_sig, fn_bkg, nev, massref):
+def loss_calc(dqn, fn_sig, fn_bkg, nev, massref):
         reader_sig = Jets(fn_sig, nev) # load validation set
         reader_bkg = Jets(fn_bkg, nev) # load validation set
         groomed_jets_sig = []
@@ -161,7 +161,8 @@ def build_and_train_model(groomer_agent_setup):
 
     if groomer_agent_setup['scan']:
         # compute a metric for training set (TODO: change to validation)
-        loss, window = loss_calc(env_setup['val'], env_setup['val_bkg'],
+        loss, window = loss_calc(dqn,
+                                 env_setup['val'], env_setup['val_bkg'],
                                  env_setup['nev_val'],env_setup['mass'])
         print(f'Loss function for scan = {loss}')
         res = {'loss': loss, 'reward': median_reward, 'window': window,
