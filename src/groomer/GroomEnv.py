@@ -281,8 +281,9 @@ class GroomEnvDual(GroomEnv):
     #----------------------------------------------------------------------
     def reward_mass_bkg(self, mass):
         """Reward for current jet mass, for background events."""
-        x = abs(mass/self.mass_width_bkg)
-        return 1.0/(math.pi*(1.0 + (x*x)))
+        massdiff = abs(mass - self.massgoal)
+        x = abs(massdiff/self.mass_width_bkg)
+        return x*x/(math.pi*(1.0 + (x*x)))
 
     #----------------------------------------------------------------------
     def reward_bkg(self, mass, lnz, lnDelta, is_groomed):
