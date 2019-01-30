@@ -266,11 +266,12 @@ class GroomEnvDual(GroomEnv):
         self.mass_width_bkg = hps['width_bkg']
         self.reward   = self.reward_total
         self.norm_bkg = hps['reward_bkg_norm']
+        self.frac_bkg = hps['frac_bkg']
 
     #----------------------------------------------------------------------
     def get_random_tree(self):
         """Get a random jet tree from either the signal or the background list of events."""
-        if random.getrandbits(1):
+        if random.uniform > self.frac_bkg:
             self.signal = True
             event = random.choice(self.events)
         else:
@@ -281,9 +282,12 @@ class GroomEnvDual(GroomEnv):
     #----------------------------------------------------------------------
     def reward_mass_bkg(self, mass):
         """Reward for current jet mass, for background events."""
-        massdiff = abs(mass - self.massgoal)
-        x = abs(massdiff/self.mass_width_bkg)
-        return x*x/(math.pi*(1.0 + (x*x)))
+        #massdiff = abs(mass - self.massgoal)
+        #x = abs(massdiff/self.mass_width_bkg)
+        #return x*x/(math.pi*(1.0 + (x*x)))
+        x = abs(mass/self.mass_width_bkg)
+        return x*np.exp(-x)
+
 
     #----------------------------------------------------------------------
     def reward_bkg(self, mass, lnz, lnDelta, is_groomed):
