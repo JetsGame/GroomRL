@@ -271,7 +271,7 @@ class GroomEnvDual(GroomEnv):
     #----------------------------------------------------------------------
     def get_random_tree(self):
         """Get a random jet tree from either the signal or the background list of events."""
-        if random.uniform > self.frac_bkg:
+        if random.uniform(0,1) > self.frac_bkg:
             self.signal = True
             event = random.choice(self.events)
         else:
