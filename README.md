@@ -1,16 +1,10 @@
-Jet grooming with Machine Learning
-===============================================
+GroomRL: jet grooming through reinforcement learning
+====================================================
 
-This repository investigates some applications of Machine Learning to
-jet grooming.
+This repository contains the code and results for the .
 
 ## Installation
 
-If you are a developer:
-```
-python setup.py develop # it will link the files from this repo
-```
-else
 ```
 python setup.py install
 ```
@@ -19,25 +13,28 @@ python setup.py install
 
 In order to launch the code run:
 ```
-groomer <runcard.json> --output <folder> [--plot] [--cpp] [--nev n]
+groomrl <runcard.json> --output <folder> [--plot] [--cpp] [--nev n]
 ```
 
 This will create a folder containg the result of the fit.
 
 To create diagnostic plots, run with the --plot option or use
 ```
-groomer-plot <folder> [--nev n]
+groomrl-plot <folder> [--nev n]
 ```
 on the previous output folder.
 
 The groomer can also be exported with the --cpp option, or by running
 ```
-groomer-cpp <folder> [-v]
+groomrl-cpp <folder> [-v]
 ```
 
 To apply an existing grooming model to a new data set, you can use
 ```
-groomer-apply <folder> <datafile> [--nev n]
+groomrl-apply <folder> <datafile> [--nev n]
 ```
-which will create a new directory in <folder> using the datafile name.
+which will create a new directory in `<folder>` using the datafile name.
 
+## References
+
+* paper ref.
