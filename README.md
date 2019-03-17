@@ -39,6 +39,10 @@ The final models presented in arXiv:19xx.xxxx are stored in:
 - results/groomerW_final: GroomRL model trained on W jets.
 - results/groomerTop_final: GroomRL model trained on top jets.
 
+## Input data
+
+All data used for the final models can be downloaded from the git-lfs repository at https://github.com/JetsGame/data.
+
 ## Running the code
 
 In order to launch the code run:
