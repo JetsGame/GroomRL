@@ -16,7 +16,7 @@ pip install .
 
 This process will copy the `groomrl` (main program), `groomrl-plot`, `groomrl-apply` and `groomrl-cpp` programs to your environment python path.
 
-We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetGames/groomrl.git).
+We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetsGame/groomrl/blob/readme/scripts/environment.yml).
 
 GroomRL requires the following packages:
 - python3
