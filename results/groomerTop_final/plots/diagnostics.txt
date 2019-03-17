@@ -1,0 +1,3 @@
+plain   :	median-diff 15.06	avg-diff 19.94	std-diff 50.40
+mrsd    :	median-diff 0.72	avg-diff 1.17	std-diff 55.00
+mdqn    :	median-diff -1.94	avg-diff -10.23	std-diff 52.00
