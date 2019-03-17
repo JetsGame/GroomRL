@@ -1,13 +1,43 @@
 GroomRL: jet grooming through reinforcement learning
 ====================================================
 
-This repository contains the code and results for the .
+This repository contains the code and results presented in arXiv:19xx.xxxx.
 
-## Installation
+## Install GroomRL
 
+GroomRL is tested and supported on 64-bit systems running Linux.
+
+Install GroomRL with Python's pip package manager:
 ```
-python setup.py install
+git clone https://github.com/JetGames/groomrl.git
+cd groomrl
+pip install .
 ```
+
+This process will copy the `groomrl` (main program), `groomrl-plot`, `groomrl-apply` and `groomrl-cpp` programs to your environment python path.
+
+We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetGames/groomrl.git).
+
+GroomRL requires the following packages:
+- python3
+- numpy
+- [fastjet](http://fastjet.fr/) (compiled with --enable-pyext using g++ and make)
+- gym
+- matplotlib
+- pandas
+- keras
+- keras-rl
+- tensorflow
+- json
+- gzip
+- argparse
+- hyperopt (optional)
+
+## Pre-trained models
+
+The final models presented in arXiv:19xx.xxxx are stored in:
+- results/groomerW_final: GroomRL model trained on W jets.
+- results/groomerTop_final: GroomRL model trained on top jets.
 
 ## Running the code
 
@@ -16,7 +46,7 @@ In order to launch the code run:
 groomrl <runcard.json> --output <folder> [--plot] [--cpp] [--nev n]
 ```
 
-This will create a folder containg the result of the fit.
+This will create a folder containing the result of the fit.
 
 To create diagnostic plots, run with the --plot option or use
 ```
@@ -37,4 +67,4 @@ which will create a new directory in `<folder>` using the datafile name.
 
 ## References
 
-* paper ref.
+* arXiv:19xx.xxxx, GroomRL paper.
