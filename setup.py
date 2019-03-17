@@ -9,19 +9,19 @@ if sys.version_info < (3,6):
 with open('README.md') as f:
     long_desc = f.read()
 
-setup(name= "groomer",
-      version = '0.1',
-      description = "A jet groomer framework",
+setup(name= "groomrl",
+      version = '1.0',
+      description = "A jet grooming algorithm based on reinforcement learning",
       author = "F. Dreyer, S. Carrazza",
       author_email = "frederic.dreyer@cern.ch, stefano.carrazza@cern.ch",
-      url="https://gitlab.cern.ch/JetsGame/groomer",
+      url="https://gitlab.cern.ch/JetsGame/groomrl",
       long_description = long_desc,
       entry_points = {'console_scripts':
                     [
-                        'groomer = groomer.scripts.groomer:main',
-                        'groomer-plot = groomer.scripts.groomer_plot:main',
-                        'groomer-cpp = groomer.scripts.groomer_cpp:main',
-                        'groomer-apply = groomer.scripts.groomer_apply:main'
+                        'groomrl = groomer.scripts.groomer:main',
+                        'groomrl-plot = groomer.scripts.groomer_plot:main',
+                        'groomrl-cpp = groomer.scripts.groomer_cpp:main',
+                        'groomrl-apply = groomer.scripts.groomer_apply:main'
                     ]},
       package_dir = {'': 'src'},
       packages = find_packages('src'),
