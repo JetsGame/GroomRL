@@ -48,7 +48,7 @@ def plot_mass(groomer, sample_fn, mass_ref=80.385, output_folder='./', nev=-1,
     plt.hist(mdqn,     bins=bins, facecolor='none', edgecolor='C3', lw=2,
              label='DQN-Grooming', hatch="\\")
 
-    plt.xlim((0,150))
+    plt.xlim((0,200))
     plt.legend()
     fn = '%s/mass%s.pdf' % (output_folder, '' if not background else '_bkg')
     plt.savefig(fn, bbox_inches='tight')
