@@ -3,7 +3,7 @@
 GroomRL: jet grooming through reinforcement learning
 ====================================================
 
-This repository contains the code and results presented in arXiv:19xx.xxxx.
+This repository contains the code and results presented in [arXiv:19xx.xxxxx](https://arxiv.org/abs/190x.xxxxx "GroomRL paper").
 
 ## Install GroomRL
 
