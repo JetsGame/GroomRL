@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/159022917.svg)](https://zenodo.org/badge/latestdoi/159022917)
+
 GroomRL: jet grooming through reinforcement learning
 ====================================================
 
