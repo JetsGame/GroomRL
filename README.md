@@ -73,4 +73,5 @@ which will create a new directory in `<folder>` using the datafile name.
 
 ## References
 
-* arXiv:19xx.xxxx, GroomRL paper.
+* S. Carrazza and F.A. Dreyer, "Jet grooming through reinforcement learning,"
+  [arXiv:19xx.xxxxx]{https://arxiv.org/abs/190x.xxxxx "GroomRL paper"}
