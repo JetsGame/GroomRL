@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 from groomer.Groomer import RSD
 from groomer.JetTree import *
 from groomer.read_data import Jets

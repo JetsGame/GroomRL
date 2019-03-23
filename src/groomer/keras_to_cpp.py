@@ -1,4 +1,4 @@
-# this file is adapted from dump_to_simple_cpp.py from keras2cpp
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 #-------------------------------------------------------------------------------
 def check_model(hps):
@@ -7,6 +7,7 @@ def check_model(hps):
         raise ValueError("keras_to_cpp: Only Dense layers without Dropout are supported.")
 
 #----------------------------------------------------------------------
+# adapted from dump_to_simple_cpp.py from the keras2cpp library
 def keras_to_cpp(model, layerdic, cpp_fn):
     """Convert keras to cpp readable file."""
     with open(cpp_fn, 'w') as fout:

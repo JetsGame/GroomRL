@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 import fastjet as fj
 import numpy as np
 import math

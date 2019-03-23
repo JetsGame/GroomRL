@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 """
     groomer_cpp.py: the entry point for groomer-cpp.
 """

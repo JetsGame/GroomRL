@@ -1,6 +1,7 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 import random, math, pprint
 from groomer.read_data import Jets
-#from tools import declusterings, kinematics_node, coords
 from groomer.JetTree import JetTree, LundCoordinates
 from gym import spaces, Env
 from gym.utils import seeding
@@ -83,21 +84,6 @@ class GroomEnv(Env):
         # the separate reward and reward_sig functions are required for
         # the GroomEnvDual class
         self.reward  = self.reward_sig
-
-        # # set variables needed for the SD reward
-        # self.alpha1 = 0.5
-        # self.alpha2 = 0.4
-        # # for alternative implementation
-        # self.alpha1 = 1.0
-        # self.alpha2 = 0.1
-        # self.SDnorm = 0.05
-        # # lnzRef is the reference value below which radiation is
-        # # considered soft and to be groomed
-        # self.lnzRef1 = -4
-        # self.lnzRef2 = -6
-        # for alternative implementation
-        # self.lnzRef1 = -8
-        # self.lnzRef2 = -8
 
         self.description= '%s with\n%s' % (self.__class__.__name__,pprint.pformat(hps))
         print('Setting up %s' % self.description)

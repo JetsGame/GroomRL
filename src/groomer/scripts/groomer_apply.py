@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 """
     groomer_apply.py: the entry point for groomer-apply.
 """

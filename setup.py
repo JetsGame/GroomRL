@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 from __future__ import print_function
 import sys
 from setuptools import setup, find_packages

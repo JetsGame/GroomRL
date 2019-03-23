@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 from groomer.GroomEnv import GroomEnv, GroomEnvDual
 import numpy as np
 

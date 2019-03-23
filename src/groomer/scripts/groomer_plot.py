@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 """
     groomer_plot.py: the entry point for groomer-plot.
 """

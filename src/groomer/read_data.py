@@ -1,3 +1,5 @@
+# This file is part of GroomRL by S. Carrazza and F. A. Dreyer
+
 import json, gzip, sys
 from abc import ABC, abstractmethod
 import numpy as np
