@@ -1,6 +1,6 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-#-------------------------------------------------------------------------------
+#----------------------------------------------------------------------
 def check_model(hps):
     """Check that the model defined is portable to cpp."""
     if hps['dropout']>0.0 or hps['architecture']=='LSTM':
