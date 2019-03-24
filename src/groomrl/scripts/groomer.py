@@ -149,9 +149,9 @@ def main():
 
     # if requested, add cpp output
     if args.cpp:
+        check_model(groomer_agent_setup['groomer_agent'])
         cppdir = '%s/cpp' % setup['output']
         os.mkdir(cppdir)
         cpp_fn = '%s/model.nnet' % cppdir
         arch_dic=ast.literal_eval(groomer.model.to_json().replace('true','True').replace('null','None'))
-        check_model(groomer_agent_setup['groomer_agent'])
         keras_to_cpp(groomer.model, arch_dic['config']['layers'], cpp_fn)

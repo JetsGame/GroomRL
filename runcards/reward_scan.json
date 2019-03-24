@@ -1,6 +1,6 @@
 {
     "groomer_env": {
-	"state_dim": 5,
+	"state_dim": 2,
 	"fn": "../data/train/WW_500GeV.json.gz",
 	"val": "../data/valid/valid_WW_500GeV.json.gz",
 	"val_bkg": "../data/valid/valid_QCD_500GeV.json.gz",

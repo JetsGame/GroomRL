@@ -14,16 +14,18 @@ def main():
     """Starting point"""
     parser = argparse.ArgumentParser(description='Convert the groomer model to cpp file.')
     parser.add_argument('fit_folder', action='store', help='The fit folder')
-    parser.add_argument('-v',action='store_true',dest='verbose')
     args = parser.parse_args()
 
-    # building output folder
+    # set output folder
     folder = args.fit_folder.strip('/')
     output = '%s/cpp' % folder
-    os.mkdir(output)
 
     # loading json card
     runcard = load_runcard('%s/runcard.json' % folder)
+    check_model(runcard['groomer_agent'])
+
+    # create output folder
+    os.mkdir(output)
         
     # read architecture card
     with open('%s/model.json' % folder) as f:
@@ -35,5 +37,4 @@ def main():
     model.load_weights(modelwgts_fn)
 
     cpp_fn = '%s/model.nnet'%output
-    check_model(runcard['groomer_agent'])
-    keras_to_cpp(model, arch_dic['config']['layers'], cpp_fn, args.verbose)
+    keras_to_cpp(model, arch_dic['config']['layers'], cpp_fn)
