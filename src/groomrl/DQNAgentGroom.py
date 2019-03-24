@@ -1,6 +1,6 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-from groomer.Groomer import Groomer
+from groomrl.Groomer import Groomer
 from rl.agents.dqn import DQNAgent
 from keras.models import model_from_json
 

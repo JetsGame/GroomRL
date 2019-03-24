@@ -1,12 +1,12 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 """
-    groomer.py: the entry point for the groomer.
+    groomer.py: the entry point for the groomrl.
 """
-from groomer.read_data import Jets
-from groomer.models import build_and_train_model, load_runcard
-from groomer.diagnostics import plot_mass, plot_lund
-from groomer.keras_to_cpp import keras_to_cpp, check_model
+from groomrl.read_data import Jets
+from groomrl.models import build_and_train_model, load_runcard
+from groomrl.diagnostics import plot_mass, plot_lund
+from groomrl.keras_to_cpp import keras_to_cpp, check_model
 from hyperopt import fmin, tpe, hp, Trials, space_eval
 from hyperopt.mongoexp import MongoTrials
 from time import time

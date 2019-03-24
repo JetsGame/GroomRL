@@ -1,10 +1,10 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 """
-    groomer_cpp.py: the entry point for groomer-cpp.
+    groomer_cpp.py: the entry point for groomrl-cpp.
 """
-from groomer.keras_to_cpp import keras_to_cpp, check_model
-from groomer.models import load_runcard
+from groomrl.keras_to_cpp import keras_to_cpp, check_model
+from groomrl.models import load_runcard
 from keras.models import model_from_json
 import pickle, json
 import argparse, os, ast

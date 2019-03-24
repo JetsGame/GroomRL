@@ -1,9 +1,9 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-from groomer.Groomer import RSD
-from groomer.JetTree import *
-from groomer.read_data import Jets
-from groomer.tools import mass
+from groomrl.Groomer import RSD
+from groomrl.JetTree import *
+from groomrl.read_data import Jets
+from groomrl.tools import mass
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np

@@ -1,8 +1,8 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 import random, math, pprint
-from groomer.read_data import Jets
-from groomer.JetTree import JetTree, LundCoordinates
+from groomrl.read_data import Jets
+from groomrl.JetTree import JetTree, LundCoordinates
 from gym import spaces, Env
 from gym.utils import seeding
 import heapq as hq

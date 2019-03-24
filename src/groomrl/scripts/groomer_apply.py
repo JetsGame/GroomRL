@@ -3,9 +3,9 @@
 """
     groomer_apply.py: the entry point for groomer-apply.
 """
-from groomer.Groomer import Groomer
-from groomer.diagnostics import plot_mass, plot_lund
-from groomer.models import load_runcard
+from groomrl.Groomer import Groomer
+from groomrl.diagnostics import plot_mass, plot_lund
+from groomrl.models import load_runcard
 import json
 import argparse, os
 

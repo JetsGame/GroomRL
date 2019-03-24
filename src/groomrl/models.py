@@ -1,12 +1,12 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-from groomer.GroomEnv import GroomEnv, GroomEnvDual
+from groomrl.GroomEnv import GroomEnv, GroomEnvDual
 import numpy as np
 
-from groomer.tools import get_window_width, mass
-from groomer.DQNAgentGroom import DQNAgentGroom
-from groomer.JetTree import LundCoordinates
-from groomer.read_data import Jets
+from groomrl.tools import get_window_width, mass
+from groomrl.DQNAgentGroom import DQNAgentGroom
+from groomrl.JetTree import LundCoordinates
+from groomrl.read_data import Jets
 from rl.policy import BoltzmannQPolicy, EpsGreedyQPolicy
 from rl.memory import SequentialMemory
 

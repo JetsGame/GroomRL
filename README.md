@@ -64,6 +64,7 @@ The groomer can also be exported with the --cpp option, or by running
 ```
 groomrl-cpp <folder> [-v]
 ```
+This will create a cpp/model.nnet file that can be imported in a c++ framework.
 
 To apply an existing grooming model to a new data set, you can use
 ```

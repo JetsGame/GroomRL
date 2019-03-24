@@ -1,12 +1,12 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 """
-    groomer_plot.py: the entry point for groomer-plot.
+    groomer_plot.py: the entry point for groomrl-plot.
 """
-from groomer.Groomer import Groomer
-from groomer.JetTree import *
-from groomer.diagnostics import plot_mass, plot_lund
-from groomer.models import load_runcard
+from groomrl.Groomer import Groomer
+from groomrl.JetTree import *
+from groomrl.diagnostics import plot_mass, plot_lund
+from groomrl.models import load_runcard
 import json
 import argparse, os
 

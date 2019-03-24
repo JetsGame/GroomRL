@@ -5,25 +5,25 @@ import sys
 from setuptools import setup, find_packages
 
 if sys.version_info < (3,6):
-    print("groomer requires Python 3.6 or later", file=sys.stderr)
+    print("GroomRL requires Python 3.6 or later", file=sys.stderr)
     sys.exit(1)
 
 with open('README.md') as f:
     long_desc = f.read()
 
 setup(name= "groomrl",
-      version = '1.0',
+      version = '1.0.0',
       description = "A jet grooming algorithm based on reinforcement learning",
       author = "F. Dreyer, S. Carrazza",
       author_email = "frederic.dreyer@cern.ch, stefano.carrazza@cern.ch",
-      url="https://gitlab.cern.ch/JetsGame/groomrl",
+      url="https://gitlab.cern.ch/JetsGame/GroomRL",
       long_description = long_desc,
       entry_points = {'console_scripts':
                     [
-                        'groomrl = groomer.scripts.groomer:main',
-                        'groomrl-plot = groomer.scripts.groomer_plot:main',
-                        'groomrl-cpp = groomer.scripts.groomer_cpp:main',
-                        'groomrl-apply = groomer.scripts.groomer_apply:main'
+                        'groomrl = groomrl.scripts.groomer:main',
+                        'groomrl-plot = groomrl.scripts.groomer_plot:main',
+                        'groomrl-cpp = groomrl.scripts.groomer_cpp:main',
+                        'groomrl-apply = groomrl.scripts.groomer_apply:main'
                     ]},
       package_dir = {'': 'src'},
       packages = find_packages('src'),

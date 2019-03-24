@@ -1,6 +1,6 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-from groomer.JetTree import JetTree
+from groomrl.JetTree import JetTree
 import numpy as np
 import math, json
 from abc import ABC, abstractmethod
