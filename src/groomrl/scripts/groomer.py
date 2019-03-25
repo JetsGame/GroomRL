@@ -13,7 +13,7 @@ from hyperopt.mongoexp import MongoTrials
 from time import time
 from shutil import copyfile
 from copy import deepcopy
-import os, argparse, pickle, pprint, json, ast
+import os, argparse, pickle, pprint, json, ast, shutil
 #import cProfile
 
 #----------------------------------------------------------------------
@@ -85,6 +85,8 @@ def main():
     parser.add_argument('--output', '-o', type=str, default=None,
                         help='The output folder.')
     parser.add_argument('--plot',action='store_true',dest='plot')
+    parser.add_argument('--force', '-f', action='store_true',dest='force',
+                        help='Overwrite existing files if present')
     parser.add_argument('--cpp',action='store_true',dest='cpp')
     parser.add_argument('--data', type=str, default=None, dest='data',
                         help='Data on which to apply the groomer.')
@@ -99,6 +101,8 @@ def main():
         raise ValueError('Invalid runcard: not a file.')
     elif args.model and not (args.plot or args.cpp or args.data):
         raise ValueError('Invalid options: no actions requested.')
+    if args.force:
+        print('WARNING: Running with --force option will overwrite existing model')
 
     if args.runcard:
         # load json
@@ -109,7 +113,17 @@ def main():
         out = os.path.splitext(base)[0]
         if args.output is not None:
             out = args.output
-        makedir(out)
+        try:
+            makedir(out)
+        except Exception as error:
+            if args.force:
+                print(f'WARNING: Overwriting {out} with new model')
+                shutil.rmtree(out)
+                makedir(out)
+            else:
+                print(error)
+                print('Delete or run with "--force" to overwrite.')
+                exit(-1)
         setup['output'] = out
         
         # copy runcard to output folder

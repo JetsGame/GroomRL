@@ -51,7 +51,7 @@ All data used for the final models can be downloaded from the git-lfs repository
 
 In order to launch the code run:
 ```
-groomrl <runcard.json> [--output <folder>] [--plot] [--cpp] [--nev n]
+groomrl <runcard.json> [--output <folder>] [--plot] [--cpp] [--nev n] [--force]
 ```
 
 This will create a folder containing the result of the fit.
