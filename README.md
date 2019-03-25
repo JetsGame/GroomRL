@@ -37,7 +37,9 @@ GroomRL requires the following packages:
 
 ## Pre-trained models
 
-The final models presented in arXiv:19xx.xxxx are stored in:
+The final models presented in
+[arXiv:19xx.xxxxx](https://arxiv.org/abs/190x.xxxxx "GroomRL paper")
+are stored in:
 - results/groomerW_final: GroomRL model trained on W jets.
 - results/groomerTop_final: GroomRL model trained on top jets.
 
@@ -49,7 +51,7 @@ All data used for the final models can be downloaded from the git-lfs repository
 
 In order to launch the code run:
 ```
-groomrl <runcard.json> --output <folder> [--plot] [--cpp] [--nev n]
+groomrl <runcard.json> [--output <folder>] [--plot] [--cpp] [--nev n]
 ```
 
 This will create a folder containing the result of the fit.
