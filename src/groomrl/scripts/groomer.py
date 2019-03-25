@@ -141,7 +141,7 @@ def main():
         
         # save the final runcard
         with open(f'{out}/runcard.json','w') as f:
-            json.dump(groomer_agent_setup, f)
+            json.dump(groomer_agent_setup, f, indent=4)
         
         fnres = '%s/test_predictions.pickle' % setup['output']
         
