@@ -159,6 +159,8 @@ def main():
             groomed_jets.append(gr_jet)
         with open(fnres,'wb') as wfp:
             pickle.dump(groomed_jets, wfp)
+        # define the folder where to do the plotting/cpp conversation
+        folder = setup['output']
 
     elif args.model:
         folder = args.model.strip('/')
@@ -173,7 +175,7 @@ def main():
         
     # if requested, add plotting
     if args.plot:
-        plotdir='%s/plots' % setup['output']
+        plotdir='%s/plots' % folder
         try:
             makedir(plotdir)
         except:
@@ -200,7 +202,7 @@ def main():
     # if a data set was given as input, produce plots from it
     if args.data:
         fn = os.path.basename(args.data).split(os.extsep)[0]
-        plotdir='%s/%s' % (setup['output'], fn)
+        plotdir='%s/%s' % (folder, fn)
         try:
             makedir(plotdir)
         except:
@@ -216,7 +218,7 @@ def main():
     # if requested, add cpp output
     if args.cpp:
         check_model(groomer_agent_setup['groomer_agent'])
-        cppdir = '%s/cpp' % setup['output']
+        cppdir = '%s/cpp' % folder
         try:
             makedir(cppdir)
         except:
