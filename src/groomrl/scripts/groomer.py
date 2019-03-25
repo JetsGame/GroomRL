@@ -174,8 +174,11 @@ def main():
     # if requested, add plotting
     if args.plot:
         plotdir='%s/plots' % setup['output']
-        if not os.path.exists(plotdir):
-            os.mkdir(plotdir)
+        try:
+            makedir(plotdir)
+        except:
+            print(f'[+] Ignoring plot instruction: {plotdir} already exists')
+        else:
             print(f'[+] Creating test plots in {plotdir}')
             # generating invmass plot
             plot_mass(groomer, setup['test']['fn'],
@@ -192,37 +195,37 @@ def main():
                           output_folder=plotdir, nev=args.nev, background=True)
                 plot_lund(groomer, setup['test']['fn_bkg'], output_folder=plotdir,
                           nev=args.nev, background=True)
-        else:
-            print(f'[+] Ignoring plot instruction: {plotdir} already exists')
 
 
     # if a data set was given as input, produce plots from it
     if args.data:
         fn = os.path.basename(args.data).split(os.extsep)[0]
         plotdir='%s/%s' % (setup['output'], fn)
-        if not os.path.exists(plotdir):
-            os.mkdir(plotdir)
+        try:
+            makedir(plotdir)
+        except:
+            print(f'[+] Ignoring data instruction: {plotdir} already exists')
+        else:
             print(f'[+] Creating mass and lune plane plots in {plotdir}')
             # generating invmass plot
             plot_mass(groomer, args.data, mass_ref=setup['groomer_env']['mass'],
                       output_folder=plotdir, nev=args.nev)
             # generate lund plane plot
             plot_lund(groomer, args.data, output_folder=plotdir, nev=args.nev)
-        else:
-            print(f'[+] Ignoring data instruction: {plotdir} already exists')
 
     # if requested, add cpp output
     if args.cpp:
         check_model(groomer_agent_setup['groomer_agent'])
         cppdir = '%s/cpp' % setup['output']
-        if not os.path.exists(cppdir):
-            os.mkdir(cppdir)
+        try:
+            makedir(cppdir)
+        except:
+            print(f'[+] Ignoring cpp instruction: {cppdir} already exists')
+        else:
             print(f'[+] Adding cpp model in {cppdir}')
             cpp_fn = '%s/model.nnet' % cppdir
             arch_dic=ast.literal_eval(groomer.model.to_json()
                                       .replace('true','True')
                                       .replace('null','None'))
             keras_to_cpp(groomer.model, arch_dic['config']['layers'], cpp_fn)
-        else:
-            print(f'[+] Ignoring cpp instruction: {cppdir} already exists')
             
