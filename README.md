@@ -15,7 +15,7 @@ git clone https://github.com/JetGames/groomrl.git
 cd groomrl
 pip install .
 ```
-To install the package to in a specific location, use
+To install the package in a specific location, use
 the "--target=PREFIX_PATH" flag.
 
 This process will copy the `groomrl` program to your environment python path.
