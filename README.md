@@ -20,7 +20,7 @@ the "--target=PREFIX_PATH" flag.
 
 This process will copy the `groomrl` program to your environment python path.
 
-We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetsGame/groomrl/blob/master/scripts/environment.yml).
+We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetsGame/groomrl/blob/master/environment.yml).
 
 GroomRL requires the following packages:
 - python3
