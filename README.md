@@ -16,7 +16,7 @@ cd groomrl
 pip install .
 ```
 
-This process will copy the `groomrl` (main program), `groomrl-plot`, `groomrl-apply` and `groomrl-cpp` programs to your environment python path.
+This process will copy the `groomrl` program to your environment python path.
 
 We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetsGame/groomrl/blob/readme/scripts/environment.yml).
 
@@ -56,19 +56,19 @@ This will create a folder containing the result of the fit.
 
 To create diagnostic plots, run with the --plot option or use
 ```
-groomrl-plot <folder> [--nev n]
+groomrl --model <folder> --plot [--nev n]
 ```
 on the previous output folder.
 
 The groomer can also be exported with the --cpp option, or by running
 ```
-groomrl-cpp <folder> [-v]
+groomrl --model <folder> --cpp
 ```
 This will create a cpp/model.nnet file that can be imported in a c++ framework.
 
 To apply an existing grooming model to a new data set, you can use
 ```
-groomrl-apply <folder> <datafile> [--nev n]
+groomrl --model <folder> --data <datafile> [--nev n]
 ```
 which will create a new directory in `<folder>` using the datafile name.
 

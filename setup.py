@@ -19,12 +19,7 @@ setup(name= "groomrl",
       url="https://gitlab.cern.ch/JetsGame/GroomRL",
       long_description = long_desc,
       entry_points = {'console_scripts':
-                    [
-                        'groomrl = groomrl.scripts.groomer:main',
-                        'groomrl-plot = groomrl.scripts.groomer_plot:main',
-                        'groomrl-cpp = groomrl.scripts.groomer_cpp:main',
-                        'groomrl-apply = groomrl.scripts.groomer_apply:main'
-                    ]},
+                      ['groomrl = groomrl.scripts.groomer:main']},
       package_dir = {'': 'src'},
       packages = find_packages('src'),
       zip_safe = False,
