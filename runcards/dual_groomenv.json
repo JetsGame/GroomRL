@@ -18,8 +18,8 @@
 	"lnzRef1": -1,
 	"lnzRef2": -4,
 	"dual_groomer_env": true,
-        "reward_bkg_norm": 1.0,
-        "frac_bkg": 0.2
+	"reward_bkg_norm": 1.0,
+	"frac_bkg": 0.2
     },
     "groomer_agent": {
 	"learning_rate": 1e-4,

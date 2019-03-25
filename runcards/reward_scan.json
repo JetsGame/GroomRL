@@ -21,7 +21,7 @@
 	"dual_groomer_env": 0,
 	"fn_bkg": "../data/train/QCD_500GeV.json.gz",
 	"width_bkg": 20,
-        "reward_bkg_norm": 1.0
+	"reward_bkg_norm": 1.0
     },
     "groomer_agent": {
 	"learning_rate": 0.00034714493249855203,

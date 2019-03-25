@@ -21,8 +21,8 @@
 	"dual_groomer_env": "hp.choice('dual_groomer_env', [0, 1])",
 	"fn_bkg": "../data/train/QCD_500GeV.json.gz",
 	"width_bkg": "hp.choice('width_bkg', [5, 10, 20])",
-        "reward_bkg_norm": "hp.uniform('reward_bkg_norm', 0.5, 2)",
-        "frac_bkg": "hp.uniform('frac_bkg', 0.0, 0.5)"
+	"reward_bkg_norm": "hp.uniform('reward_bkg_norm', 0.5, 2)",
+	"frac_bkg": "hp.uniform('frac_bkg', 0.0, 0.5)"
     },
     "groomer_agent": {
 	"learning_rate": 1e-4,

@@ -1,1 +1,50 @@
-{"groomer_env": {"state_dim": 5, "fn": "../data/train/WW_500GeV.json.gz", "fn_bkg": "../data/train/QCD_500GeV.json.gz", "val": "../data/valid/valid_WW_500GeV.json.gz", "val_bkg": "../data/valid/valid_QCD_500GeV.json.gz", "mass": 80.385, "nev": 500000, "nev_val": 50000, "width": 2.0, "reward": "cauchy", "SD_groom": "exp_add", "SD_keep": "exp_add", "alpha1": 0.5923089571819175, "beta1": 0.18111333083642128, "alpha2": 0.6500809763759177, "beta2": 0.3291626666020196, "lnzRef1": -0.9164413230962482, "lnzRef2": -3.5272433286841265, "SD_norm": 0.15335298310386006, "dual_groomer_env": 1, "width_bkg": 8, "reward_bkg_norm": 1.8037814220044979, "frac_bkg": 0.4827936134781456}, "groomer_agent": {"learning_rate": 0.00011474563397272942, "enable_dueling_network": 1, "enable_double_dqn": 0, "policy": "boltzmann", "nstep": 500000, "architecture": "Dense", "dropout": 0.05, "nb_layers": 10, "nb_units": 100, "optimizer": "Adam"}, "cluster": {"enable": false, "url": "mongo://192.168.111.1:31000/groomer/jobs", "exp_key": "exp1", "max_evals": 1000}, "test": {"fn": "../data/test/test_WW_500GeV.json.gz", "fn_bkg": "../data/test/test_QCD_500GeV.json.gz"}, "scan": false, "output": "groomW_param_semi1"}
+{
+    "groomer_env": {
+	"state_dim": 5,
+	"fn": "../data/train/WW_500GeV.json.gz",
+	"fn_bkg": "../data/train/QCD_500GeV.json.gz",
+	"val": "../data/valid/valid_WW_500GeV.json.gz",
+	"val_bkg": "../data/valid/valid_QCD_500GeV.json.gz",
+	"mass": 80.385,
+	"nev": 500000,
+	"nev_val": 50000,
+	"width": 2.0, 
+	"reward": "cauchy",
+	"SD_groom": "exp_add",
+	"SD_keep": "exp_add",
+	"alpha1": 0.5923089571819175,
+	"beta1": 0.18111333083642128,
+	"alpha2": 0.6500809763759177,
+	"beta2": 0.3291626666020196,
+	"lnzRef1": -0.9164413230962482,
+	"lnzRef2": -3.5272433286841265,
+	"SD_norm": 0.15335298310386006,
+	"dual_groomer_env": 1,
+	"width_bkg": 8,
+	"reward_bkg_norm": 1.8037814220044979,
+	"frac_bkg": 0.4827936134781456
+    },
+    "groomer_agent": {
+	"learning_rate": 0.00011474563397272942,
+	"enable_dueling_network": 1,
+	"enable_double_dqn": 0,
+	"policy": "boltzmann",
+	"nstep": 500000,
+	"architecture": "Dense",
+	"dropout": 0.05,
+	"nb_layers": 10,
+	"nb_units": 100,
+	"optimizer": "Adam"
+    },
+    "cluster": {
+	"enable": false,
+	"url": "mongo://192.168.111.1:31000/groomer/jobs",
+	"exp_key": "exp1",
+	"max_evals": 1000
+    },
+    "test": {
+	"fn": "../data/test/test_WW_500GeV.json.gz",
+	"fn_bkg": "../data/test/test_QCD_500GeV.json.gz"
+    },
+    "scan": false, "output": "groomW_param_semi1"
+}
