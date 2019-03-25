@@ -46,5 +46,6 @@
 	"fn": "../data/test/test_WW_500GeV.json.gz",
 	"fn_bkg": "../data/test/test_QCD_500GeV.json.gz"
     },
-    "scan": false, "output": "groomW_param_semi1"
+    "scan": false,
+    "output": "groomW_final"
 }
