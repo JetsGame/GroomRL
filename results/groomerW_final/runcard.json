@@ -47,5 +47,5 @@
 	"fn_bkg": "../data/test/test_QCD_500GeV.json.gz"
     },
     "scan": false,
-    "output": "groomW_final"
+    "output": "groomerW_final"
 }
