@@ -24,7 +24,7 @@ def run_hyperparameter_scan(search_space):
     TODO: better import/export for the best model, wait to DQNAgentGroom
     """
 
-    print('[+] Performing hyperparamter scan...')
+    print('[+] Performing hyperparameter scan...')
     if search_space['cluster']['enable']:
         url = search_space['cluster']['url']
         key = search_space['cluster']['exp_key']
