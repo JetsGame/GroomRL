@@ -1,7 +1,7 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
 """
-    groomer.py: the entry point for the groomrl.
+    groomer.py: the entry point for groomrl.
 """
 from groomrl.read_data import Jets
 from groomrl.models import build_and_train_model, load_runcard

@@ -1,9 +1,14 @@
 [![DOI](https://zenodo.org/badge/159022917.svg)](https://zenodo.org/badge/latestdoi/159022917)
 
-GroomRL: jet grooming through reinforcement learning
-====================================================
+GroomRL
+=======
 
-This repository contains the code and results presented in [arXiv:19xx.xxxxx](https://arxiv.org/abs/190x.xxxxx "GroomRL paper").
+This repository contains the code and results presented in
+[arXiv:1903.09644](https://arxiv.org/abs/1903.09644 "GroomRL paper").
+
+## About
+
+GroomRL is a reinforcement learning framework to train jet grooming strategies.
 
 ## Install GroomRL
 
@@ -20,12 +25,14 @@ the "--target=PREFIX_PATH" flag.
 
 This process will copy the `groomrl` program to your environment python path.
 
-We recommend the installation of the GroomRL package using a `miniconda3` environment with the [following packages](https://github.com/JetsGame/groomrl/blob/master/environment.yml).
+We recommend the installation of the GroomRL package using a `miniconda3`
+environment with the
+[configuration specified here](https://github.com/JetsGame/groomrl/blob/master/environment.yml).
 
 GroomRL requires the following packages:
 - python3
 - numpy
-- [fastjet](http://fastjet.fr/) (compiled with --enable-pyext using g++ and make)
+- [fastjet](http://fastjet.fr/) (compiled with --enable-pyext)
 - gym
 - matplotlib
 - pandas
@@ -40,14 +47,15 @@ GroomRL requires the following packages:
 ## Pre-trained models
 
 The final models presented in
-[arXiv:19xx.xxxxx](https://arxiv.org/abs/190x.xxxxx "GroomRL paper")
+[arXiv:1903.09644](https://arxiv.org/abs/1903.09644 "GroomRL paper")
 are stored in:
 - results/groomerW_final: GroomRL model trained on W jets.
 - results/groomerTop_final: GroomRL model trained on top jets.
 
 ## Input data
 
-All data used for the final models can be downloaded from the git-lfs repository at https://github.com/JetsGame/data.
+All data used for the final models can be downloaded from the git-lfs repository
+at https://github.com/JetsGame/data.
 
 ## Running the code
 
@@ -78,5 +86,5 @@ which will create a new directory in `<folder>` using the datafile name.
 
 ## References
 
-* S. Carrazza and F.A. Dreyer, "Jet grooming through reinforcement learning,"
-  [arXiv:19xx.xxxxx](https://arxiv.org/abs/190x.xxxxx "GroomRL paper")
+* S. Carrazza and F. A. Dreyer, "Jet grooming through reinforcement learning,"
+  [arXiv:1903.09644](https://arxiv.org/abs/1903.09644 "GroomRL paper")
