@@ -49,8 +49,7 @@ def build_model(hps, input_dim):
     return model
 
 #----------------------------------------------------------------------
-# inspire from:
-# https://github.com/keras-rl/keras-rl/blob/master/examples/dqn_atari.py
+# loosely inspired from keras-rl's dqn_atari model
 def build_dqn(hps, input_dim):
     """Create a DQN agent to be used on lund inputs."""
 
