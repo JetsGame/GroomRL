@@ -16,7 +16,7 @@ GroomRL is tested and supported on 64-bit systems running Linux.
 
 Install GroomRL with Python's pip package manager:
 ```
-git clone https://github.com/JetGames/groomrl.git
+git clone https://github.com/JetsGames/groomrl.git
 cd groomrl
 pip install .
 ```
