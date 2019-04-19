@@ -12,7 +12,7 @@ with open('README.md') as f:
     long_desc = f.read()
 
 setup(name= "groomrl",
-      version = '1.0.1',
+      version = '1.0.2',
       description = "A jet grooming algorithm based on reinforcement learning",
       author = "F. Dreyer, S. Carrazza",
       author_email = "frederic.dreyer@cern.ch, stefano.carrazza@cern.ch",
