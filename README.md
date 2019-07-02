@@ -86,7 +86,7 @@ which will create a new directory in `<folder>` using the datafile name.
 
 ## C++ interface
 
-To call models trained with GroomRL in a C++ code, install and use the libGroomRL library
+To call models trained with GroomRL in a C++ code, install and use the
 [libGroomRL library](https://github.com/JetsGame/libGroomRL)
 
 ## References
