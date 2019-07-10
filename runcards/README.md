@@ -26,9 +26,15 @@ environment parameters for the groomer.
 - lnzRef1: parameter for groomed SD reward
 - lnzRef2: parameter for kept SD reward
 - state_dim: dimensionality of the observable state
-- fn_bkg: data set used for the background (for GroomEnvDual)
-- width_bkg: parameter used for background reward
 - dual_groomer_env: use GroomEnvDual instead of GroomEnv (true or false)
+- fn_bkg: data set used for the background (GroomEnvDual/GroomEnvTriple only)
+- frac_bkg: fraction of background data (GroomEnvDual/GroomEnvTriple only)
+- width_bkg: parameter used for background reward (GroomEnvDual/GroomEnvTriple only)
+- triple_groomer_env: use GroomEnvTriple instead of GroomEnvDual (true or false)
+- fn2: the data set used for the second signal sample (GroomEnvTriple only)
+- frac2: fraction of second sample used (GroomEnvTriple only)
+- mass2: target mass of second sample (GroomEnvTriple only)
+- width2: width parameter for second sample (GroomEnvTriple only)
 
 ## groomer_agent
 The groomer_agent contains all the parameters for the DQN and NN

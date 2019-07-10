@@ -1,0 +1,44 @@
+{
+    "groomer_env": {
+	"state_dim": 5,
+	"fn": "../data/train/WW_2TeV.json.gz",
+	"fn2": "../data/train/Top_2TeV.json.gz",
+	"fn_bkg": "../data/train/QCD_2TeV.json.gz",
+	"mass": 80.385,
+	"mass2": 173.2,
+	"nev": 50000,
+	"width": 1.0,
+	"width2": 1.0,
+	"width_bkg": 10.0,
+	"reward": "cauchy",
+	"SD_groom": "exp_add",
+	"SD_keep": "exp_add",
+	"alpha1": 0.6,
+	"beta1": 0.2,
+	"alpha2": 0.6,
+	"beta2": 0.3,
+	"SD_norm": 0.1,
+	"lnzRef1": -1,
+	"lnzRef2": -4,
+	"triple_groomer_env": true,
+	"reward_bkg_norm": 1.0,
+	"frac_bkg": 0.2,
+	"frac2": 0.5
+    },
+    "groomer_agent": {
+	"learning_rate": 1e-4,
+	"nstep": 50000,
+	"enable_dueling_network": false,
+	"enable_double_dqn": false,
+	"policy": "boltzmann",
+	"architecture": "Dense",
+	"dropout": 0.05,
+	"nb_layers": 3,
+	"nb_units": 100,
+	"optimizer": "Adam"
+    },
+    "test": {
+	"fn": "../data/test/test_WW_2TeV.json.gz",
+	"fn_bkg": "../data/test/test_QCD_2TeV.json.gz"
+    }
+}

@@ -1,6 +1,6 @@
 # This file is part of GroomRL by S. Carrazza and F. A. Dreyer
 
-from groomrl.GroomEnv import GroomEnv, GroomEnvDual
+from groomrl.GroomEnv import GroomEnv, GroomEnvDual, GroomEnvTriple
 import numpy as np
 
 from groomrl.tools import get_window_width, mass
@@ -126,8 +126,11 @@ def build_and_train_model(groomer_agent_setup):
     if not env_setup["state_dim"]==LundCoordinates.dimension:
         LundCoordinates.change_dimension(env_setup["state_dim"])
 
-    if env_setup["dual_groomer_env"]:
+    if "dual_groomer_env" in env_setup and env_setup["dual_groomer_env"]:
         groomer_env = GroomEnvDual(env_setup, low=LundCoordinates.low,
+                                   high=LundCoordinates.high)
+    elif "triple_groomer_env" in env_setup and env_setup["triple_groomer_env"]:
+        groomer_env = GroomEnvTriple(env_setup, low=LundCoordinates.low,
                                    high=LundCoordinates.high)
     else:
         groomer_env = GroomEnv(env_setup, low=LundCoordinates.low,

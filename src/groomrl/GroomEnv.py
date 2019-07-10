@@ -53,13 +53,13 @@ class GroomEnv(Env):
 
         # set the reward functions
         if hps['reward']=='cauchy':
-            self.__reward=self.__reward_Cauchy
+            self._reward=self.__reward_Cauchy
         elif hps['reward']=='gaussian':
-            self.__reward=self.__reward_Gaussian
+            self._reward=self.__reward_Gaussian
         elif hps['reward']=='exponential':
-            self.__reward=self.__reward_Exponential
+            self._reward=self.__reward_Exponential
         elif hps['reward']=='inverse':
-            self.__reward=self.__reward_Inverse
+            self._reward=self.__reward_Inverse
         else:
             raise ValueError('Invalid reward: %s'%hps['reward'])
         if hps['SD_groom']=='exp_add':
@@ -152,7 +152,7 @@ class GroomEnv(Env):
     def reward_mass(self,mass):
         """For a given jet mass, return the output of the reward function."""
         massdiff = abs(mass - self.massgoal)
-        return self.__reward(massdiff/self.mass_width)
+        return self._reward(massdiff/self.mass_width)
 
     #----------------------------------------------------------------------
     def reward_SD(self, lnz, lnDelta, is_groomed):
@@ -285,6 +285,57 @@ class GroomEnvDual(GroomEnv):
         """Full reward function."""
         if self.signal:
             return self.reward_sig(mass, lnz, lnDelta, is_groomed)
+        else:
+            return self.norm_bkg*self.reward_bkg(mass, lnz, lnDelta, is_groomed)
+
+#======================================================================
+class GroomEnvTriple(GroomEnvDual):
+    """Class defining a gym environment for the groomer with two signal samples and one background sample."""
+
+    #----------------------------------------------------------------------
+    def __init__(self, hps, *args, **kwargs):
+        """
+        Initialisation of the environment. The dictionary for GroomEnvDual requires
+        two additional entries:
+        - fn_bkg: file with background events
+        - width_bkg: parameter for the background mass reward
+        """
+        super(GroomEnvTriple, self).__init__(hps, *args, **kwargs)
+        reader2 = Jets(hps['fn2'], hps['nev'])
+        self.events2     = reader2.values()
+        self.massgoal2   = hps['mass2']
+        self.mass_width2 = hps['width2']
+        self.reward = self.reward_triple
+        self.frac2  = hps['frac2']
+
+    #----------------------------------------------------------------------
+    def get_random_tree(self):
+        """Get a random jet tree from either the signals or the background list of events."""
+        if random.uniform(0,1) > self.frac_bkg:
+            if random.uniform(0,1) > self.frac2:
+                self.signal = 1
+                event = random.choice(self.events)
+            else:
+                self.signal = 2
+                event = random.choice(self.events2)
+        else:
+            self.signal = 0
+            event = random.choice(self.events_bkg)
+        return JetTree(event)
+
+    #----------------------------------------------------------------------
+    def reward_mass2(self,mass):
+        """For a given jet mass, return the output of the reward function."""
+        massdiff = abs(mass - self.massgoal2)
+        return self._reward(massdiff/self.mass_width2)
+
+    #----------------------------------------------------------------------
+    def reward_triple(self, mass, lnz, lnDelta, is_groomed):
+        """Full reward function."""
+        if self.signal==1:
+            return self.reward_mass(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
+        elif self.signal==2:
+            return self.reward_mass2(mass) + self.reward_SD(lnz, lnDelta, is_groomed)
         else:
             return self.norm_bkg*self.reward_bkg(mass, lnz, lnDelta, is_groomed)
 
