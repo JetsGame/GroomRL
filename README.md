@@ -84,6 +84,11 @@ groomrl --model <folder> --data <datafile> [--nev n]
 ```
 which will create a new directory in `<folder>` using the datafile name.
 
+## C++ interface
+
+To call models trained with GroomRL in a C++ code, install and use the
+[libGroomRL library](https://github.com/JetsGame/libGroomRL).
+
 ## References
 
 * S. Carrazza and F. A. Dreyer, "Jet grooming through reinforcement learning,"
